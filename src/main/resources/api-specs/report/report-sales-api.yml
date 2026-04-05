@@ -1,0 +1,83 @@
+get:
+  tags:
+    - "Report"
+  summary: "Get sales report"
+  description: "Returns detailed sales report for date range"
+  operationId: "getSalesReport"
+  parameters:
+    - name: fromDate
+      in: query
+      required: true
+      schema:
+        type: string
+        format: date
+      example: "2026-04-01"
+    - name: toDate
+      in: query
+      required: true
+      schema:
+        type: string
+        format: date
+      example: "2026-04-05"
+    - name: groupBy
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [DAY, WEEK, MONTH]
+      example: "DAY"
+  responses:
+    "200":
+      description: "Sales report fetched successfully"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: object
+                properties:
+                  totalSales:
+                    type: number
+                    example: 125000.00
+                  totalInvoices:
+                    type: integer
+                    example: 230
+                  totalDiscount:
+                    type: number
+                    example: 5000.00
+                  totalTax:
+                    type: number
+                    example: 3000.00
+                  cashSales:
+                    type: number
+                    example: 80000.00
+                  upiSales:
+                    type: number
+                    example: 30000.00
+                  cardSales:
+                    type: number
+                    example: 15000.00
+                  creditSales:
+                    type: number
+                    example: 0.00
+                  records:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                          example: "2026-04-01"
+                        totalSales:
+                          type: number
+                          example: 25000.00
+                        totalInvoices:
+                          type: integer
+                          example: 46

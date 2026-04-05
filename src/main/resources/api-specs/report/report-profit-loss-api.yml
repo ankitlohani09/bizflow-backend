@@ -1,0 +1,76 @@
+get:
+  tags:
+    - "Report"
+  summary: "Get profit and loss report"
+  description: "Returns profit and loss summary for date range"
+  operationId: "getProfitLossReport"
+  parameters:
+    - name: fromDate
+      in: query
+      required: true
+      schema:
+        type: string
+        format: date
+      example: "2026-04-01"
+    - name: toDate
+      in: query
+      required: true
+      schema:
+        type: string
+        format: date
+      example: "2026-04-05"
+  responses:
+    "200":
+      description: "Profit loss report fetched successfully"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: object
+                properties:
+                  totalRevenue:
+                    type: number
+                    example: 125000.00
+                  totalCOGS:
+                    type: number
+                    example: 80000.00
+                  grossProfit:
+                    type: number
+                    example: 45000.00
+                  totalExpenses:
+                    type: number
+                    example: 20000.00
+                  netProfit:
+                    type: number
+                    example: 25000.00
+                  profitMargin:
+                    type: number
+                    example: 20.0
+                  breakdown:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                          example: "2026-04-01"
+                        revenue:
+                          type: number
+                          example: 25000.00
+                        cogs:
+                          type: number
+                          example: 16000.00
+                        expenses:
+                          type: number
+                          example: 4000.00
+                        netProfit:
+                          type: number
+                          example: 5000.00

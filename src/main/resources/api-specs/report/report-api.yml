@@ -1,0 +1,93 @@
+get:
+  tags:
+    - "Report"
+  summary: "Get dashboard summary"
+  description: "Returns KPI summary for dashboard"
+  operationId: "getDashboard"
+  parameters:
+    - name: fromDate
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+      example: "2026-04-01"
+    - name: toDate
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+      example: "2026-04-05"
+  responses:
+    "200":
+      description: "Dashboard data fetched successfully"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: object
+                properties:
+                  todaySales:
+                    type: number
+                    example: 25000.00
+                  todayExpenses:
+                    type: number
+                    example: 5000.00
+                  todayProfit:
+                    type: number
+                    example: 20000.00
+                  totalInvoices:
+                    type: integer
+                    example: 45
+                  pendingPayments:
+                    type: number
+                    example: 3500.00
+                  lowStockItems:
+                    type: integer
+                    example: 5
+                  totalInventoryValue:
+                    type: number
+                    example: 150000.00
+                  topSellingItems:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        itemId:
+                          type: integer
+                          example: 1
+                        itemName:
+                          type: string
+                          example: "Tata Salt"
+                        totalQuantity:
+                          type: integer
+                          example: 200
+                        totalRevenue:
+                          type: number
+                          example: 5000.00
+                  salesChart:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                          example: "2026-04-01"
+                        sales:
+                          type: number
+                          example: 12000.00
+                        expenses:
+                          type: number
+                          example: 3000.00
+                        profit:
+                          type: number
+                          example: 9000.00

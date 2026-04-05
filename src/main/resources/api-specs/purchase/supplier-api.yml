@@ -1,0 +1,131 @@
+get:
+  tags:
+    - "Purchase"
+  summary: "Get all suppliers"
+  description: "Returns all suppliers of current tenant"
+  operationId: "getAllSuppliers"
+  parameters:
+    - name: search
+      in: query
+      required: false
+      schema:
+        type: string
+      example: "Ramesh"
+    - name: active
+      in: query
+      required: false
+      schema:
+        type: boolean
+      example: true
+  responses:
+    "200":
+      description: "Suppliers fetched successfully"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    name:
+                      type: string
+                      example: "Ramesh Traders"
+                    phone:
+                      type: string
+                      example: "9876543210"
+                    email:
+                      type: string
+                      example: "ramesh@traders.com"
+                    address:
+                      type: string
+                      example: "123 Market Street, Bhopal"
+                    gstin:
+                      type: string
+                      example: "23ABCDE1234F1Z5"
+                    active:
+                      type: boolean
+                      example: true
+
+post:
+  tags:
+    - "Purchase"
+  summary: "Create supplier"
+  description: "Add a new supplier"
+  operationId: "createSupplier"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - name
+            - phone
+          properties:
+            name:
+              type: string
+              example: "Ramesh Traders"
+            phone:
+              type: string
+              example: "9876543210"
+            email:
+              type: string
+              format: email
+              example: "ramesh@traders.com"
+            address:
+              type: string
+              example: "123 Market Street, Bhopal"
+            gstin:
+              type: string
+              example: "23ABCDE1234F1Z5"
+  responses:
+    "201":
+      description: "Supplier created successfully"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Supplier created successfully"
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: "Ramesh Traders"
+    "400":
+      description: "Validation error"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Supplier with this phone already exists"
+              data:
+                nullable: true
+                example: null

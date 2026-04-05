@@ -1,0 +1,178 @@
+get:
+  tags:
+    - "User"
+  summary: "Get user by ID"
+  description: "Returns single user details"
+  operationId: "getUserById"
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      example: 1
+  responses:
+    "200":
+      description: "User found"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: "Ankit Lohani"
+                  email:
+                    type: string
+                    example: "ankit@bizflow.com"
+                  phone:
+                    type: string
+                    example: "9876543210"
+                  role:
+                    type: string
+                    example: "MANAGER"
+                  active:
+                    type: boolean
+                    example: true
+    "404":
+      description: "User not found"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "User not found"
+              data:
+                nullable: true
+                example: null
+
+put:
+  tags:
+    - "User"
+  summary: "Update user"
+  description: "Update user details"
+  operationId: "updateUser"
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      example: 1
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "Ankit Lohani"
+            phone:
+              type: string
+              example: "9876543210"
+            role:
+              type: string
+              enum: [OWNER, MANAGER, STAFF]
+              example: "MANAGER"
+            active:
+              type: boolean
+              example: true
+  responses:
+    "200":
+      description: "User updated successfully"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "User updated successfully"
+              data:
+                nullable: true
+                example: null
+    "404":
+      description: "User not found"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "User not found"
+              data:
+                nullable: true
+                example: null
+
+delete:
+  tags:
+    - "User"
+  summary: "Delete user"
+  description: "Soft delete a user"
+  operationId: "deleteUser"
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      example: 1
+  responses:
+    "200":
+      description: "User deleted successfully"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "User deleted successfully"
+              data:
+                nullable: true
+                example: null
+    "404":
+      description: "User not found"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "User not found"
+              data:
+                nullable: true
+                example: null

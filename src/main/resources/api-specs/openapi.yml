@@ -1,0 +1,73 @@
+openapi: "3.1.0"
+info:
+  title: "BizFlow API"
+  description: "BizFlow - AI Powered Business Operating System"
+  version: "1.0.0"
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local Development
+
+tags:
+  - name: "Auth"
+  - name: "Tenant"
+  - name: "User"
+  - name: "Catalogue"
+  - name: "Inventory"
+  - name: "Billing"
+  - name: "Purchase"
+  - name: "Returns"
+  - name: "Expense"
+  - name: "Staff"
+  - name: "Report"
+  - name: "AI"
+
+paths:
+  /auth/login:
+    $ref: "./auth/auth-api.yml"
+  /tenants/{id}:
+    $ref: "./tenant/tenant-api.yml"
+  /users:
+    $ref: "./user/user-api.yml"
+  /users/{id}:
+    $ref: "./user/user-id-api.yml"
+  /items:
+    $ref: "./catalogue/item-api.yml"
+  /items/{id}:
+    $ref: "./catalogue/item-id-api.yml"
+  /categories:
+    $ref: "./catalogue/category-api.yml"
+  /inventory:
+    $ref: "./inventory/inventory-api.yml"
+  /inventory/adjust:
+    $ref: "./inventory/inventory-adjust-api.yml"
+  /stock-movements:
+    $ref: "./inventory/stock-movement-api.yml"
+  /invoices:
+    $ref: "./billing/invoice-api.yml"
+  /invoices/{id}:
+    $ref: "./billing/invoice-id-api.yml"
+  /purchases:
+    $ref: "./purchase/purchase-api.yml"
+  /suppliers:
+    $ref: "./purchase/supplier-api.yml"
+  /returns:
+    $ref: "./returns/return-api.yml"
+  /expenses:
+    $ref: "./expense/expense-api.yml"
+  /expense-categories:
+    $ref: "./expense/expense-category-api.yml"
+  /staff:
+    $ref: "./staff/staff-api.yml"
+  /attendance:
+    $ref: "./staff/attendance-api.yml"
+  /staff-advances:
+    $ref: "./staff/staff-advance-api.yml"
+  /reports/dashboard:
+    $ref: "./report/report-api.yml"
+  /reports/sales:
+    $ref: "./report/report-sales-api.yml"
+  /reports/profit-loss:
+    $ref: "./report/report-profit-loss-api.yml"
+  /ai/query:
+    $ref: "./ai/ai-query-api.yml"

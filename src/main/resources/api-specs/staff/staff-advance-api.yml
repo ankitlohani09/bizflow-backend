@@ -1,0 +1,149 @@
+get:
+  tags:
+    - "Staff"
+  summary: "Get staff advances"
+  description: "Returns all salary advance records"
+  operationId: "getStaffAdvances"
+  parameters:
+    - name: staffId
+      in: query
+      required: false
+      schema:
+        type: integer
+      example: 1
+    - name: fromDate
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+      example: "2026-01-01"
+    - name: toDate
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+      example: "2026-04-05"
+  responses:
+    "200":
+      description: "Staff advances fetched successfully"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    staffId:
+                      type: integer
+                      example: 1
+                    staffName:
+                      type: string
+                      example: "Ramesh Kumar"
+                    amount:
+                      type: number
+                      example: 5000.00
+                    reason:
+                      type: string
+                      example: "Medical emergency"
+                    advanceDate:
+                      type: string
+                      format: date
+                      example: "2026-04-05"
+                    createdAt:
+                      type: string
+                      format: date-time
+                      example: "2026-04-05T10:00:00"
+
+post:
+  tags:
+    - "Staff"
+  summary: "Create staff advance"
+  description: "Record a salary advance for staff member"
+  operationId: "createStaffAdvance"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - staffId
+            - amount
+            - advanceDate
+          properties:
+            staffId:
+              type: integer
+              example: 1
+            amount:
+              type: number
+              example: 5000.00
+            reason:
+              type: string
+              example: "Medical emergency"
+            advanceDate:
+              type: string
+              format: date
+              example: "2026-04-05"
+            note:
+              type: string
+              example: "To be deducted from April salary"
+  responses:
+    "201":
+      description: "Staff advance created successfully"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Staff advance created successfully"
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  staffName:
+                    type: string
+                    example: "Ramesh Kumar"
+                  amount:
+                    type: number
+                    example: 5000.00
+                  advanceDate:
+                    type: string
+                    format: date
+                    example: "2026-04-05"
+    "400":
+      description: "Validation error"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Staff not found"
+              data:
+                nullable: true
+                example: null

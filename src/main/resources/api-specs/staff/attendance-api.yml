@@ -1,0 +1,154 @@
+get:
+  tags:
+    - "Staff"
+  summary: "Get attendance"
+  description: "Returns attendance records of staff"
+  operationId: "getAttendance"
+  parameters:
+    - name: staffId
+      in: query
+      required: false
+      schema:
+        type: integer
+      example: 1
+    - name: month
+      in: query
+      required: false
+      schema:
+        type: integer
+      example: 4
+    - name: year
+      in: query
+      required: false
+      schema:
+        type: integer
+      example: 2026
+  responses:
+    "200":
+      description: "Attendance fetched successfully"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    staffId:
+                      type: integer
+                      example: 1
+                    staffName:
+                      type: string
+                      example: "Ramesh Kumar"
+                    date:
+                      type: string
+                      format: date
+                      example: "2026-04-05"
+                    status:
+                      type: string
+                      enum: [PRESENT, ABSENT, HALF_DAY, HOLIDAY]
+                      example: "PRESENT"
+                    checkIn:
+                      type: string
+                      example: "09:00"
+                    checkOut:
+                      type: string
+                      example: "18:00"
+                    note:
+                      type: string
+                      example: "On time"
+
+post:
+  tags:
+    - "Staff"
+  summary: "Mark attendance"
+  description: "Mark attendance for a staff member"
+  operationId: "markAttendance"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - staffId
+            - date
+            - status
+          properties:
+            staffId:
+              type: integer
+              example: 1
+            date:
+              type: string
+              format: date
+              example: "2026-04-05"
+            status:
+              type: string
+              enum: [PRESENT, ABSENT, HALF_DAY, HOLIDAY]
+              example: "PRESENT"
+            checkIn:
+              type: string
+              example: "09:00"
+            checkOut:
+              type: string
+              example: "18:00"
+            note:
+              type: string
+              example: "On time"
+  responses:
+    "201":
+      description: "Attendance marked successfully"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Attendance marked successfully"
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  staffName:
+                    type: string
+                    example: "Ramesh Kumar"
+                  date:
+                    type: string
+                    format: date
+                    example: "2026-04-05"
+                  status:
+                    type: string
+                    example: "PRESENT"
+    "400":
+      description: "Validation error"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Attendance already marked for this date"
+              data:
+                nullable: true
+                example: null

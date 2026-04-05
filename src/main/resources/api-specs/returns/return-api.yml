@@ -1,0 +1,190 @@
+get:
+  tags:
+    - "Returns"
+  summary: "Get all returns"
+  description: "Returns all return records of current tenant"
+  operationId: "getAllReturns"
+  parameters:
+    - name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        default: 0
+      example: 0
+    - name: size
+      in: query
+      required: false
+      schema:
+        type: integer
+        default: 20
+      example: 20
+    - name: fromDate
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+      example: "2026-01-01"
+    - name: toDate
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+      example: "2026-04-05"
+    - name: type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [CUSTOMER_RETURN, SUPPLIER_RETURN]
+      example: "CUSTOMER_RETURN"
+  responses:
+    "200":
+      description: "Returns fetched successfully"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    returnNumber:
+                      type: string
+                      example: "RET-2026-001"
+                    type:
+                      type: string
+                      example: "CUSTOMER_RETURN"
+                    invoiceId:
+                      type: integer
+                      example: 1
+                    invoiceNumber:
+                      type: string
+                      example: "INV-2026-001"
+                    customerName:
+                      type: string
+                      example: "Rahul Sharma"
+                    totalRefundAmount:
+                      type: number
+                      example: 50.00
+                    refundMode:
+                      type: string
+                      example: "CASH"
+                    createdAt:
+                      type: string
+                      format: date-time
+                      example: "2026-04-05T10:00:00"
+
+post:
+  tags:
+    - "Returns"
+  summary: "Create return"
+  description: "Process a customer or supplier return"
+  operationId: "createReturn"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - type
+            - items
+          properties:
+            type:
+              type: string
+              enum: [CUSTOMER_RETURN, SUPPLIER_RETURN]
+              example: "CUSTOMER_RETURN"
+            invoiceId:
+              type: integer
+              example: 1
+            supplierId:
+              type: integer
+              example: 1
+            reason:
+              type: string
+              example: "Damaged product"
+            refundMode:
+              type: string
+              enum: [CASH, CARD, UPI, CREDIT]
+              example: "CASH"
+            note:
+              type: string
+              example: "Customer returned 2 items"
+            items:
+              type: array
+              items:
+                type: object
+                required:
+                  - itemId
+                  - quantity
+                  - price
+                properties:
+                  itemId:
+                    type: integer
+                    example: 1
+                  quantity:
+                    type: integer
+                    example: 2
+                  price:
+                    type: number
+                    example: 25.00
+                  condition:
+                    type: string
+                    enum: [GOOD, DAMAGED, EXPIRED]
+                    example: "DAMAGED"
+  responses:
+    "201":
+      description: "Return processed successfully"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Return processed successfully"
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  returnNumber:
+                    type: string
+                    example: "RET-2026-001"
+                  totalRefundAmount:
+                    type: number
+                    example: 50.00
+    "400":
+      description: "Validation error"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Invoice not found"
+              data:
+                nullable: true
+                example: null

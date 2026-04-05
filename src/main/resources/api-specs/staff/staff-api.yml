@@ -1,0 +1,145 @@
+get:
+  tags:
+    - "Staff"
+  summary: "Get all staff"
+  description: "Returns all staff members of current tenant"
+  operationId: "getAllStaff"
+  parameters:
+    - name: search
+      in: query
+      required: false
+      schema:
+        type: string
+      example: "Ramesh"
+    - name: active
+      in: query
+      required: false
+      schema:
+        type: boolean
+      example: true
+  responses:
+    "200":
+      description: "Staff fetched successfully"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    name:
+                      type: string
+                      example: "Ramesh Kumar"
+                    phone:
+                      type: string
+                      example: "9876543210"
+                    role:
+                      type: string
+                      example: "Cashier"
+                    salary:
+                      type: number
+                      example: 15000.00
+                    joiningDate:
+                      type: string
+                      format: date
+                      example: "2026-01-01"
+                    active:
+                      type: boolean
+                      example: true
+
+post:
+  tags:
+    - "Staff"
+  summary: "Create staff"
+  description: "Add a new staff member"
+  operationId: "createStaff"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - name
+            - phone
+            - role
+            - salary
+            - joiningDate
+          properties:
+            name:
+              type: string
+              example: "Ramesh Kumar"
+            phone:
+              type: string
+              example: "9876543210"
+            email:
+              type: string
+              format: email
+              example: "ramesh@gmail.com"
+            role:
+              type: string
+              example: "Cashier"
+            salary:
+              type: number
+              example: 15000.00
+            joiningDate:
+              type: string
+              format: date
+              example: "2026-01-01"
+            address:
+              type: string
+              example: "123 Main Street, Bhopal"
+  responses:
+    "201":
+      description: "Staff created successfully"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Staff created successfully"
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: "Ramesh Kumar"
+                  phone:
+                    type: string
+                    example: "9876543210"
+    "400":
+      description: "Validation error"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Staff with this phone already exists"
+              data:
+                nullable: true
+                example: null

@@ -1,0 +1,98 @@
+get:
+  tags:
+    - "Expense"
+  summary: "Get all expense categories"
+  description: "Returns all expense categories of current tenant"
+  operationId: "getAllExpenseCategories"
+  responses:
+    "200":
+      description: "Expense categories fetched successfully"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    name:
+                      type: string
+                      example: "Rent"
+                    description:
+                      type: string
+                      example: "Shop and office rent"
+                    active:
+                      type: boolean
+                      example: true
+
+post:
+  tags:
+    - "Expense"
+  summary: "Create expense category"
+  description: "Create a new expense category"
+  operationId: "createExpenseCategory"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              example: "Rent"
+            description:
+              type: string
+              example: "Shop and office rent"
+  responses:
+    "201":
+      description: "Expense category created successfully"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Expense category created successfully"
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: "Rent"
+    "400":
+      description: "Validation error"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Category already exists"
+              data:
+                nullable: true
+                example: null

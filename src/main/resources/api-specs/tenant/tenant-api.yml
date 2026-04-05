@@ -1,0 +1,142 @@
+get:
+  tags:
+    - "Tenant"
+  summary: "Get tenant by ID"
+  description: "Returns tenant details including branding"
+  operationId: "getTenantById"
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      example: 1
+  responses:
+    "200":
+      description: "Tenant found"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: "Ankit Medical Store"
+                  email:
+                    type: string
+                    example: "ankit@store.com"
+                  phone:
+                    type: string
+                    example: "9876543210"
+                  logoUrl:
+                    type: string
+                    example: "https://cdn.bizflow.com/logo.png"
+                  primaryColor:
+                    type: string
+                    example: "#0A6E6B"
+                  domain:
+                    type: string
+                    example: "ankit.bizflow.com"
+                  businessType:
+                    type: string
+                    example: "RETAIL"
+                  active:
+                    type: boolean
+                    example: true
+    "404":
+      description: "Tenant not found"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Tenant not found"
+              data:
+                nullable: true
+                example: null
+
+put:
+  tags:
+    - "Tenant"
+  summary: "Update tenant"
+  description: "Update tenant name, logo, colors and domain"
+  operationId: "updateTenant"
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      example: 1
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "Ankit Medical Store"
+            phone:
+              type: string
+              example: "9876543210"
+            logoUrl:
+              type: string
+              example: "https://cdn.bizflow.com/logo.png"
+            primaryColor:
+              type: string
+              example: "#0A6E6B"
+            domain:
+              type: string
+              example: "ankit.bizflow.com"
+  responses:
+    "200":
+      description: "Tenant updated successfully"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Tenant updated successfully"
+              data:
+                nullable: true
+                example: null
+    "404":
+      description: "Tenant not found"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Tenant not found"
+              data:
+                nullable: true
+                example: null

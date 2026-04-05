@@ -1,0 +1,210 @@
+get:
+  tags:
+    - "Catalogue"
+  summary: "Get item by ID"
+  description: "Returns single item details"
+  operationId: "getItemById"
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      example: 1
+  responses:
+    "200":
+      description: "Item found"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: "Tata Salt"
+                  sku:
+                    type: string
+                    example: "SKU-001"
+                  barcode:
+                    type: string
+                    example: "8901234567890"
+                  categoryId:
+                    type: integer
+                    example: 1
+                  categoryName:
+                    type: string
+                    example: "Grocery"
+                  unit:
+                    type: string
+                    example: "KG"
+                  sellingPrice:
+                    type: number
+                    example: 25.00
+                  costPrice:
+                    type: number
+                    example: 20.00
+                  taxPercent:
+                    type: number
+                    example: 5.0
+                  minStockLevel:
+                    type: integer
+                    example: 10
+                  currentStock:
+                    type: integer
+                    example: 100
+                  description:
+                    type: string
+                    example: "Tata Salt 1kg pack"
+                  active:
+                    type: boolean
+                    example: true
+    "404":
+      description: "Item not found"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Item not found"
+              data:
+                nullable: true
+                example: null
+
+put:
+  tags:
+    - "Catalogue"
+  summary: "Update item"
+  description: "Update item details"
+  operationId: "updateItem"
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      example: 1
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "Tata Salt"
+            sellingPrice:
+              type: number
+              example: 25.00
+            costPrice:
+              type: number
+              example: 20.00
+            taxPercent:
+              type: number
+              example: 5.0
+            minStockLevel:
+              type: integer
+              example: 10
+            description:
+              type: string
+              example: "Tata Salt 1kg pack"
+            active:
+              type: boolean
+              example: true
+  responses:
+    "200":
+      description: "Item updated successfully"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Item updated successfully"
+              data:
+                nullable: true
+                example: null
+    "404":
+      description: "Item not found"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Item not found"
+              data:
+                nullable: true
+                example: null
+
+delete:
+  tags:
+    - "Catalogue"
+  summary: "Delete item"
+  description: "Soft delete an item"
+  operationId: "deleteItem"
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      example: 1
+  responses:
+    "200":
+      description: "Item deleted successfully"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Item deleted successfully"
+              data:
+                nullable: true
+                example: null
+    "404":
+      description: "Item not found"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Item not found"
+              data:
+                nullable: true
+                example: null

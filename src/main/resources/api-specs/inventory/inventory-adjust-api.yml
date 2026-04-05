@@ -1,0 +1,99 @@
+post:
+  tags:
+    - "Inventory"
+  summary: "Adjust stock"
+  description: "Manually adjust stock level for an item"
+  operationId: "adjustStock"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - itemId
+            - quantity
+            - type
+            - reason
+          properties:
+            itemId:
+              type: integer
+              example: 1
+            quantity:
+              type: integer
+              example: 50
+            type:
+              type: string
+              enum: [ADD, REMOVE]
+              example: "ADD"
+            reason:
+              type: string
+              enum: [DAMAGE, EXPIRED, FOUND, CORRECTION, OTHER]
+              example: "DAMAGE"
+            note:
+              type: string
+              example: "10 packets damaged in storage"
+  responses:
+    "200":
+      description: "Stock adjusted successfully"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Stock adjusted successfully"
+              data:
+                type: object
+                properties:
+                  itemId:
+                    type: integer
+                    example: 1
+                  itemName:
+                    type: string
+                    example: "Tata Salt"
+                  previousStock:
+                    type: integer
+                    example: 100
+                  adjustedQuantity:
+                    type: integer
+                    example: 50
+                  currentStock:
+                    type: integer
+                    example: 50
+    "400":
+      description: "Validation error"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Insufficient stock to remove"
+              data:
+                nullable: true
+                example: null
+    "404":
+      description: "Item not found"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Item not found"
+              data:
+                nullable: true
+                example: null

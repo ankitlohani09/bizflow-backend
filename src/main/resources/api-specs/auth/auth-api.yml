@@ -1,0 +1,80 @@
+post:
+  tags:
+    - "Auth"
+  summary: "Login"
+  description: "Authenticate user and return JWT token"
+  operationId: "login"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - email
+            - password
+          properties:
+            email:
+              type: string
+              format: email
+              example: "admin@bizflow.com"
+            password:
+              type: string
+              format: password
+              example: "secret123"
+  responses:
+    "200":
+      description: "Login successful"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Login successful"
+              data:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiJ9..."
+                  type:
+                    type: string
+                    example: "Bearer"
+                  userId:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: "Ankit Lohani"
+                  email:
+                    type: string
+                    example: "admin@bizflow.com"
+                  tenantId:
+                    type: integer
+                    example: 1
+                  roles:
+                    type: array
+                    items:
+                      type: string
+                    example: ["OWNER"]
+    "401":
+      description: "Invalid credentials"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Invalid email or password"
+              data:
+                nullable: true
+                example: null

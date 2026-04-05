@@ -1,0 +1,80 @@
+post:
+  tags:
+    - "AI"
+  summary: "AI business query"
+  description: "Ask AI anything about your business data"
+  operationId: "aiQuery"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - query
+          properties:
+            query:
+              type: string
+              example: "What were my top 5 selling items this month?"
+            type:
+              type: string
+              enum: [SALES, INVENTORY, EXPENSE, STAFF, GENERAL]
+              example: "SALES"
+            fromDate:
+              type: string
+              format: date
+              example: "2026-04-01"
+            toDate:
+              type: string
+              format: date
+              example: "2026-04-05"
+  responses:
+    "200":
+      description: "AI response generated successfully"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: object
+                properties:
+                  query:
+                    type: string
+                    example: "What were my top 5 selling items this month?"
+                  answer:
+                    type: string
+                    example: "Your top 5 selling items this month were: 1. Tata Salt (200 units)..."
+                  queryType:
+                    type: string
+                    example: "SALES"
+                  chartData:
+                    type: object
+                    nullable: true
+                    example: null
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: "2026-04-05T10:00:00"
+    "400":
+      description: "Invalid query"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Query cannot be empty"
+              data:
+                nullable: true
+                example: null

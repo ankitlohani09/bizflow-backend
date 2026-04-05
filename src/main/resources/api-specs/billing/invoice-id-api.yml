@@ -1,0 +1,178 @@
+get:
+  tags:
+    - "Billing"
+  summary: "Get invoice by ID"
+  description: "Returns single invoice with all items"
+  operationId: "getInvoiceById"
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      example: 1
+  responses:
+    "200":
+      description: "Invoice found"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Success"
+              data:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  invoiceNumber:
+                    type: string
+                    example: "INV-2026-001"
+                  customerName:
+                    type: string
+                    example: "Rahul Sharma"
+                  customerPhone:
+                    type: string
+                    example: "9876543210"
+                  totalAmount:
+                    type: number
+                    example: 500.00
+                  discountAmount:
+                    type: number
+                    example: 50.00
+                  taxAmount:
+                    type: number
+                    example: 25.00
+                  netAmount:
+                    type: number
+                    example: 475.00
+                  paidAmount:
+                    type: number
+                    example: 475.00
+                  paymentStatus:
+                    type: string
+                    example: "PAID"
+                  paymentMode:
+                    type: string
+                    example: "CASH"
+                  note:
+                    type: string
+                    example: "Regular customer"
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: "2026-04-05T10:00:00"
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        itemId:
+                          type: integer
+                          example: 1
+                        itemName:
+                          type: string
+                          example: "Tata Salt"
+                        quantity:
+                          type: integer
+                          example: 2
+                        sellingPrice:
+                          type: number
+                          example: 25.00
+                        discountPercent:
+                          type: number
+                          example: 5.0
+                        taxPercent:
+                          type: number
+                          example: 5.0
+                        totalPrice:
+                          type: number
+                          example: 47.50
+    "404":
+      description: "Invoice not found"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Invoice not found"
+              data:
+                nullable: true
+                example: null
+
+delete:
+  tags:
+    - "Billing"
+  summary: "Cancel invoice"
+  description: "Cancel an invoice and restore stock"
+  operationId: "cancelInvoice"
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      example: 1
+  responses:
+    "200":
+      description: "Invoice cancelled successfully"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: "Invoice cancelled successfully"
+              data:
+                nullable: true
+                example: null
+    "400":
+      description: "Cannot cancel invoice"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Invoice already cancelled"
+              data:
+                nullable: true
+                example: null
+    "404":
+      description: "Invoice not found"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Invoice not found"
+              data:
+                nullable: true
+                example: null
