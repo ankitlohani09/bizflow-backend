@@ -5,6 +5,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 public class SecurityUtils {
 
+    private static BizFlowUserDetails getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof BizFlowUserDetails userDetails) {
+            return userDetails;
+        }
+        throw new RuntimeException("User not authenticated");
+    }
+
     public static String getCurrentUsername() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof BizFlowUserDetails userDetails) {
@@ -27,6 +35,10 @@ public class SecurityUtils {
             return userDetails.getTenantId();
         }
         return null;
+    }
+
+    public static String getCurrentUserEmail() {
+        return getCurrentUser().getUsername();
     }
 
     public static String getCurrentRole() {
