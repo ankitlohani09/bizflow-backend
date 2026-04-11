@@ -19,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -78,9 +77,13 @@ public class StockMovementServiceImpl implements StockMovementService {
         if (dto.getDirection() == MovementDirection.IN) {
             inventory.setAvailableQty(inventory.getAvailableQty().add(dto.getQuantity()));
         } else {
+            // Guard: prevent negative stock
+            if (inventory.getAvailableQty().compareTo(dto.getQuantity()) < 0) {
+                throw new com.bizflow.common.exception.BusinessException("Insufficient stock. Available: "
+                        + inventory.getAvailableQty() + ", Requested: " + dto.getQuantity());
+            }
             inventory.setAvailableQty(inventory.getAvailableQty().subtract(dto.getQuantity()));
         }
-        inventory.setUpdatedAt(LocalDateTime.now());
         inventoryRepository.save(inventory);
 
         return ApiResponse.success(MessageConstant.STOCK_ADJUSTED, toDto(movement));

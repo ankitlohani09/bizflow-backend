@@ -40,7 +40,6 @@ public class InventoryServiceImpl implements InventoryService {
         Inventory inv = inventoryRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.INVENTORY_NOT_FOUND));
         inv.setLowStockThreshold(threshold);
-        inv.setUpdatedAt(java.time.LocalDateTime.now());
         return ApiResponse.success(MessageConstant.INVENTORY_UPDATED, toDto(inventoryRepository.save(inv)));
     }
 

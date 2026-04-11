@@ -34,8 +34,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ApiResponse<List<UserResponse>> getAllUsers() {
         Long tenantId = SecurityUtils.getCurrentTenantId();
-        List<UserResponse> users = userRepository.findAll().stream().filter(u -> u.getTenantId().equals(tenantId))
-                .map(this::toResponse).toList();
+        List<UserResponse> users = userRepository.findAllByTenantId(tenantId).stream().map(this::toResponse).toList();
         return ApiResponse.success(users);
     }
 

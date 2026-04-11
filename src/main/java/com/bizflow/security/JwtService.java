@@ -2,6 +2,7 @@ package com.bizflow.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -73,6 +74,11 @@ public class JwtService {
     }
 
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secretKey.getBytes());
+        // Decode the configured hex secret key to raw bytes for a consistent HMAC key
+        // across all environments (avoids platform-default charset issues with getBytes())
+        byte[] keyBytes = Decoders.BASE64.decode(java.util.HexFormat.of().parseHex(secretKey).length > 0
+                ? java.util.Base64.getEncoder().encodeToString(java.util.HexFormat.of().parseHex(secretKey))
+                : secretKey);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 }

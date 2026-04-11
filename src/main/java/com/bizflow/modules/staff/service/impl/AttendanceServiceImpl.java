@@ -45,7 +45,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         // Check if already marked
         attendanceRepository.findByStaffIdAndDateAndTenantId(staff.getId(), dto.getDate(), tenantId).ifPresent(a -> {
-            throw new ResourceNotFoundException(MessageConstant.ATTENDANCE_ALREADY_MARKED);
+            throw new com.bizflow.common.exception.BusinessException(MessageConstant.ATTENDANCE_ALREADY_MARKED);
         });
 
         Attendance attendance = Attendance.builder().tenantId(tenantId).staff(staff).date(dto.getDate())

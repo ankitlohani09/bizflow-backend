@@ -1,34 +1,35 @@
 -- ============================================
--- V1__init_schema.sql
+-- V1__init.sql
 -- BizFlow Complete Database Schema
+-- Fully aligned with Java entity definitions
 -- ============================================
 
 -- TENANTS
 CREATE TABLE tenants
 (
     id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id     BIGINT       NULL,
     name          VARCHAR(150) NOT NULL,
-    slug          VARCHAR(100) NOT NULL UNIQUE,
-    logo_url      VARCHAR(500),
-    primary_color VARCHAR(10),
-    domain        VARCHAR(200) UNIQUE,
-    plan          VARCHAR(50)  NOT NULL DEFAULT 'basic',
-    is_active     BOOLEAN               DEFAULT TRUE,
-    created_at    DATETIME              DEFAULT CURRENT_TIMESTAMP,
-    updated_at    DATETIME              DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    code          VARCHAR(100) NOT NULL UNIQUE,
+    email         VARCHAR(200) NOT NULL,
+    phone         VARCHAR(20)  NULL,
+    address       TEXT         NULL,
+    business_type VARCHAR(100) NULL,
+    is_active     BOOLEAN      DEFAULT TRUE,
+    created_at    DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at    DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by    VARCHAR(100) DEFAULT NULL,
+    updated_by    VARCHAR(100) DEFAULT NULL
 );
 
--- ROLES (DB-Driven)
+-- ROLES
 CREATE TABLE roles
 (
     id          BIGINT AUTO_INCREMENT PRIMARY KEY,
     tenant_id   BIGINT       NOT NULL,
     name        VARCHAR(80)  NOT NULL,
-    description VARCHAR(300),
-    created_at  DATETIME     DEFAULT CURRENT_TIMESTAMP,
-    updated_at  DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by  VARCHAR(100) DEFAULT NULL,
-    updated_by  VARCHAR(100) DEFAULT NULL,
+    description VARCHAR(300) NULL,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (tenant_id) REFERENCES tenants (id),
     UNIQUE KEY unique_role_per_tenant (name, tenant_id)
 );
@@ -41,7 +42,7 @@ CREATE TABLE users
     name       VARCHAR(150) NOT NULL,
     email      VARCHAR(200) NOT NULL,
     password   VARCHAR(255) NOT NULL,
-    phone      VARCHAR(20),
+    phone      VARCHAR(20)  NULL,
     is_active  BOOLEAN      DEFAULT TRUE,
     created_at DATETIME     DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -51,7 +52,7 @@ CREATE TABLE users
     UNIQUE KEY unique_email_per_tenant (email, tenant_id)
 );
 
--- USER_ROLES (Many-to-Many)
+-- USER_ROLES
 CREATE TABLE user_roles
 (
     id          BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -66,16 +67,14 @@ CREATE TABLE user_roles
 -- CATEGORIES
 CREATE TABLE categories
 (
-    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id   BIGINT       NOT NULL,
-    name        VARCHAR(150) NOT NULL,
-    parent_id   BIGINT,
-    description TEXT,
-    is_active   BOOLEAN      DEFAULT TRUE,
-    created_at  DATETIME     DEFAULT CURRENT_TIMESTAMP,
-    updated_at  DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by  VARCHAR(100) DEFAULT NULL,
-    updated_by  VARCHAR(100) DEFAULT NULL,
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id  BIGINT       NOT NULL,
+    name       VARCHAR(150) NOT NULL,
+    parent_id  BIGINT       NULL,
+    created_at DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by VARCHAR(100) DEFAULT NULL,
+    updated_by VARCHAR(100) DEFAULT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants (id),
     FOREIGN KEY (parent_id) REFERENCES categories (id)
 );
@@ -84,11 +83,11 @@ CREATE TABLE categories
 CREATE TABLE units
 (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id  BIGINT       NOT NULL,
-    name       VARCHAR(60)  NOT NULL,
-    symbol     VARCHAR(15)  NOT NULL,
-    created_at DATETIME     DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    tenant_id  BIGINT      NOT NULL,
+    name       VARCHAR(60) NOT NULL,
+    symbol     VARCHAR(15) NOT NULL,
+    created_at DATETIME    DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     created_by VARCHAR(100) DEFAULT NULL,
     updated_by VARCHAR(100) DEFAULT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants (id)
@@ -98,23 +97,23 @@ CREATE TABLE units
 CREATE TABLE items
 (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id       BIGINT                      NOT NULL,
-    category_id     BIGINT,
-    unit_id         BIGINT,
-    type            ENUM ('PRODUCT', 'SERVICE') NOT NULL DEFAULT 'PRODUCT',
-    name            VARCHAR(200)                NOT NULL,
-    barcode         VARCHAR(100) UNIQUE,
-    description     TEXT,
-    selling_price   DECIMAL(12, 2)              NOT NULL DEFAULT 0.00,
-    cost_price      DECIMAL(12, 2)                       DEFAULT 0.00,
-    tax_rate        DECIMAL(5, 2)                        DEFAULT 0.00,
-    has_variants    BOOLEAN                              DEFAULT FALSE,
-    track_inventory BOOLEAN                              DEFAULT TRUE,
-    is_active       BOOLEAN                              DEFAULT TRUE,
-    created_at      DATETIME                             DEFAULT CURRENT_TIMESTAMP,
-    updated_at      DATETIME                             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by      VARCHAR(100)                         DEFAULT NULL,
-    updated_by      VARCHAR(100)                         DEFAULT NULL,
+    tenant_id       BIGINT                     NOT NULL,
+    category_id     BIGINT                     NULL,
+    unit_id         BIGINT                     NULL,
+    name            VARCHAR(200)               NOT NULL,
+    type            ENUM ('PRODUCT','SERVICE') NOT NULL DEFAULT 'PRODUCT',
+    description     TEXT                       NULL,
+    barcode         VARCHAR(100)               NULL UNIQUE,
+    selling_price   DECIMAL(12, 2)             NOT NULL DEFAULT 0.00,
+    cost_price      DECIMAL(12, 2)             NULL,
+    tax_rate        DECIMAL(5, 2)                       DEFAULT 0.00,
+    has_variants    BOOLEAN                             DEFAULT FALSE,
+    track_inventory BOOLEAN                             DEFAULT TRUE,
+    is_active       BOOLEAN                             DEFAULT TRUE,
+    created_at      DATETIME                            DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME                            DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by      VARCHAR(100)                        DEFAULT NULL,
+    updated_by      VARCHAR(100)                        DEFAULT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants (id),
     FOREIGN KEY (category_id) REFERENCES categories (id),
     FOREIGN KEY (unit_id) REFERENCES units (id)
@@ -124,13 +123,13 @@ CREATE TABLE items
 CREATE TABLE item_variants
 (
     id            BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id     BIGINT       NOT NULL,
-    item_id       BIGINT       NOT NULL,
-    variant_name  VARCHAR(150) NOT NULL,
-    sku           VARCHAR(100) UNIQUE,
-    barcode       VARCHAR(100) UNIQUE,
-    selling_price DECIMAL(12, 2),
-    cost_price    DECIMAL(12, 2),
+    tenant_id     BIGINT         NOT NULL,
+    item_id       BIGINT         NOT NULL,
+    variant_name  VARCHAR(150)   NOT NULL,
+    sku           VARCHAR(100)   NULL UNIQUE,
+    barcode       VARCHAR(100)   NULL UNIQUE,
+    selling_price DECIMAL(12, 2) NULL,
+    cost_price    DECIMAL(12, 2) NULL,
     is_active     BOOLEAN      DEFAULT TRUE,
     created_at    DATETIME     DEFAULT CURRENT_TIMESTAMP,
     updated_at    DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -146,13 +145,16 @@ CREATE TABLE inventory
     id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
     tenant_id           BIGINT         NOT NULL,
     item_id             BIGINT         NOT NULL,
-    variant_id          BIGINT,
+    variant_id          BIGINT         NULL,
     available_qty       DECIMAL(12, 3) NOT NULL DEFAULT 0.000,
     damaged_qty         DECIMAL(12, 3) NOT NULL DEFAULT 0.000,
     expired_qty         DECIMAL(12, 3) NOT NULL DEFAULT 0.000,
     reserved_qty        DECIMAL(12, 3) NOT NULL DEFAULT 0.000,
-    low_stock_threshold DECIMAL(12, 3)          DEFAULT 10.000,
-    updated_at          DATETIME                DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    low_stock_threshold DECIMAL(12, 3)          NULL,
+    created_at          DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at          DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by          VARCHAR(100) DEFAULT NULL,
+    updated_by          VARCHAR(100) DEFAULT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants (id),
     FOREIGN KEY (item_id) REFERENCES items (id),
     FOREIGN KEY (variant_id) REFERENCES item_variants (id),
@@ -163,20 +165,22 @@ CREATE TABLE inventory
 CREATE TABLE stock_movements
 (
     id             BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id      BIGINT            NOT NULL,
-    item_id        BIGINT            NOT NULL,
-    variant_id     BIGINT,
-    movement_type  VARCHAR(50)       NOT NULL,
-    condition_type VARCHAR(50),
-    direction      ENUM ('IN','OUT') NOT NULL,
-    quantity       DECIMAL(12, 3)    NOT NULL,
-    reference_type VARCHAR(60),
-    reference_id   BIGINT,
-    batch_no       VARCHAR(100),
-    expiry_date    DATE,
-    notes          TEXT,
-    created_by     BIGINT,
-    created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+    tenant_id      BIGINT                                                                         NOT NULL,
+    item_id        BIGINT                                                                         NOT NULL,
+    variant_id     BIGINT                                                                         NULL,
+    movement_type  ENUM ('PURCHASE','SALE','RETURN','DAMAGE','EXPIRED','TRANSFER','ADJUSTMENT')   NOT NULL,
+    condition_type ENUM ('GOOD','DAMAGED','EXPIRED')                                              NULL,
+    direction      ENUM ('IN','OUT')                                                              NOT NULL,
+    quantity       DECIMAL(12, 3)                                                                 NOT NULL,
+    reference_type VARCHAR(60)  NULL,
+    reference_id   BIGINT       NULL,
+    batch_no       VARCHAR(100) NULL,
+    expiry_date    DATE         NULL,
+    notes          TEXT         NULL,
+    created_at     DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by     VARCHAR(100) DEFAULT NULL,
+    updated_by     VARCHAR(100) DEFAULT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants (id),
     FOREIGN KEY (item_id) REFERENCES items (id),
     FOREIGN KEY (variant_id) REFERENCES item_variants (id)
@@ -188,11 +192,11 @@ CREATE TABLE suppliers
     id           BIGINT AUTO_INCREMENT PRIMARY KEY,
     tenant_id    BIGINT       NOT NULL,
     name         VARCHAR(200) NOT NULL,
-    contact_name VARCHAR(150),
-    phone        VARCHAR(20),
-    email        VARCHAR(200),
-    address      TEXT,
-    gstin        VARCHAR(20),
+    contact_name VARCHAR(150) NULL,
+    phone        VARCHAR(20)  NULL,
+    email        VARCHAR(200) NULL,
+    address      TEXT         NULL,
+    gstin        VARCHAR(20)  NULL,
     is_active    BOOLEAN      DEFAULT TRUE,
     created_at   DATETIME     DEFAULT CURRENT_TIMESTAMP,
     updated_at   DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -201,12 +205,34 @@ CREATE TABLE suppliers
     FOREIGN KEY (tenant_id) REFERENCES tenants (id)
 );
 
--- PAYMENT MODES (DB-Driven)
+-- CUSTOMERS
+CREATE TABLE customers
+(
+    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id       BIGINT         NOT NULL,
+    name            VARCHAR(200)   NOT NULL,
+    email           VARCHAR(200)   NULL,
+    phone           VARCHAR(20)    NULL,
+    address         TEXT           NULL,
+    city            VARCHAR(100)   NULL,
+    state           VARCHAR(100)   NULL,
+    pincode         VARCHAR(20)    NULL,
+    gstin           VARCHAR(20)    NULL,
+    opening_balance DECIMAL(14, 2) DEFAULT 0.00,
+    is_active       BOOLEAN        DEFAULT TRUE,
+    created_at      DATETIME       DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME       DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by      VARCHAR(100)   DEFAULT NULL,
+    updated_by      VARCHAR(100)   DEFAULT NULL,
+    FOREIGN KEY (tenant_id) REFERENCES tenants (id)
+);
+
+-- PAYMENT MODES
 CREATE TABLE payment_modes
 (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id  BIGINT       NOT NULL,
-    name       VARCHAR(100) NOT NULL,
+    tenant_id  BIGINT      NOT NULL,
+    name       VARCHAR(60) NOT NULL,
     is_active  BOOLEAN      DEFAULT TRUE,
     created_at DATETIME     DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -220,23 +246,23 @@ CREATE TABLE payment_modes
 CREATE TABLE invoices
 (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id       BIGINT                                       NOT NULL,
-    invoice_number  VARCHAR(60)                                  NOT NULL,
-    invoice_type    ENUM ('SALE','ESTIMATE','CREDIT_NOTE')       NOT NULL DEFAULT 'SALE',
-    customer_name   VARCHAR(200),
-    customer_phone  VARCHAR(20),
-    subtotal        DECIMAL(14, 2)                               NOT NULL,
-    discount_amount DECIMAL(14, 2)                                        DEFAULT 0.00,
-    tax_amount      DECIMAL(14, 2)                                        DEFAULT 0.00,
-    grand_total     DECIMAL(14, 2)                               NOT NULL,
-    paid_amount     DECIMAL(14, 2)                                        DEFAULT 0.00,
-    change_amount   DECIMAL(14, 2)                                        DEFAULT 0.00,
-    payment_status  ENUM ('PAID','PARTIAL','UNPAID','CANCELLED') NOT NULL DEFAULT 'UNPAID',
-    notes           TEXT,
-    created_at      DATETIME                                              DEFAULT CURRENT_TIMESTAMP,
-    updated_at      DATETIME                                              DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by      VARCHAR(100)                                          DEFAULT NULL,
-    updated_by      VARCHAR(100)                                          DEFAULT NULL,
+    tenant_id       BIGINT                                        NOT NULL,
+    invoice_number  VARCHAR(60)                                   NOT NULL,
+    invoice_type    ENUM ('SALE','ESTIMATE','CREDIT_NOTE')        NOT NULL DEFAULT 'SALE',
+    customer_name   VARCHAR(200)                                  NULL,
+    customer_phone  VARCHAR(20)                                   NULL,
+    subtotal        DECIMAL(14, 2)                                NOT NULL DEFAULT 0.00,
+    discount_amount DECIMAL(14, 2)                                         DEFAULT 0.00,
+    tax_amount      DECIMAL(14, 2)                                         DEFAULT 0.00,
+    grand_total     DECIMAL(14, 2)                                NOT NULL DEFAULT 0.00,
+    paid_amount     DECIMAL(14, 2)                                         DEFAULT 0.00,
+    change_amount   DECIMAL(14, 2)                                         DEFAULT 0.00,
+    payment_status  ENUM ('PAID','PARTIAL','UNPAID','CANCELLED')  NOT NULL DEFAULT 'UNPAID',
+    notes           TEXT                                          NULL,
+    created_at      DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by      VARCHAR(100) DEFAULT NULL,
+    updated_by      VARCHAR(100) DEFAULT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants (id),
     UNIQUE KEY unique_invoice_per_tenant (invoice_number, tenant_id)
 );
@@ -248,12 +274,16 @@ CREATE TABLE invoice_items
     tenant_id    BIGINT         NOT NULL,
     invoice_id   BIGINT         NOT NULL,
     item_id      BIGINT         NOT NULL,
-    variant_id   BIGINT,
+    variant_id   BIGINT         NULL,
     quantity     DECIMAL(12, 3) NOT NULL,
     unit_price   DECIMAL(12, 2) NOT NULL,
-    discount_pct DECIMAL(5, 2) DEFAULT 0.00,
-    tax_rate     DECIMAL(5, 2) DEFAULT 0.00,
+    discount_pct DECIMAL(5, 2)           DEFAULT 0.00,
+    tax_rate     DECIMAL(5, 2)           DEFAULT 0.00,
     line_total   DECIMAL(14, 2) NOT NULL,
+    created_at   DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at   DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by   VARCHAR(100) DEFAULT NULL,
+    updated_by   VARCHAR(100) DEFAULT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants (id),
     FOREIGN KEY (invoice_id) REFERENCES invoices (id),
     FOREIGN KEY (item_id) REFERENCES items (id),
@@ -268,9 +298,12 @@ CREATE TABLE payments
     invoice_id      BIGINT         NOT NULL,
     payment_mode_id BIGINT         NOT NULL,
     amount          DECIMAL(14, 2) NOT NULL,
-    reference_no    VARCHAR(150),
+    reference_no    VARCHAR(150)   NULL,
     paid_at         DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    created_at      DATETIME                DEFAULT CURRENT_TIMESTAMP,
+    created_at      DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by      VARCHAR(100) DEFAULT NULL,
+    updated_by      VARCHAR(100) DEFAULT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants (id),
     FOREIGN KEY (invoice_id) REFERENCES invoices (id),
     FOREIGN KEY (payment_mode_id) REFERENCES payment_modes (id)
@@ -281,18 +314,18 @@ CREATE TABLE purchases
 (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     tenant_id       BIGINT                           NOT NULL,
-    supplier_id     BIGINT,
+    supplier_id     BIGINT                           NULL,
     purchase_number VARCHAR(60)                      NOT NULL,
     purchase_date   DATE                             NOT NULL,
-    subtotal        DECIMAL(14, 2)                   NOT NULL,
+    subtotal        DECIMAL(14, 2)                   NOT NULL DEFAULT 0.00,
     tax_amount      DECIMAL(14, 2)                            DEFAULT 0.00,
-    grand_total     DECIMAL(14, 2)                   NOT NULL,
+    grand_total     DECIMAL(14, 2)                   NOT NULL DEFAULT 0.00,
     payment_status  ENUM ('PAID','PARTIAL','UNPAID') NOT NULL DEFAULT 'UNPAID',
-    notes           TEXT,
-    created_at      DATETIME                                  DEFAULT CURRENT_TIMESTAMP,
-    updated_at      DATETIME                                  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by      VARCHAR(100)                              DEFAULT NULL,
-    updated_by      VARCHAR(100)                              DEFAULT NULL,
+    notes           TEXT                             NULL,
+    created_at      DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by      VARCHAR(100) DEFAULT NULL,
+    updated_by      VARCHAR(100) DEFAULT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants (id),
     FOREIGN KEY (supplier_id) REFERENCES suppliers (id),
     UNIQUE KEY unique_purchase_per_tenant (purchase_number, tenant_id)
@@ -305,13 +338,17 @@ CREATE TABLE purchase_items
     tenant_id   BIGINT         NOT NULL,
     purchase_id BIGINT         NOT NULL,
     item_id     BIGINT         NOT NULL,
-    variant_id  BIGINT,
+    variant_id  BIGINT         NULL,
     quantity    DECIMAL(12, 3) NOT NULL,
-    cost_price  DECIMAL(12, 2) NOT NULL,
-    tax_rate    DECIMAL(5, 2) DEFAULT 0.00,
+    unit_cost   DECIMAL(12, 2) NOT NULL,
+    tax_rate    DECIMAL(5, 2)           DEFAULT 0.00,
     line_total  DECIMAL(14, 2) NOT NULL,
-    batch_no    VARCHAR(100),
-    expiry_date DATE,
+    batch_no    VARCHAR(100)   NULL,
+    expiry_date DATE           NULL,
+    created_at  DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by  VARCHAR(100) DEFAULT NULL,
+    updated_by  VARCHAR(100) DEFAULT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants (id),
     FOREIGN KEY (purchase_id) REFERENCES purchases (id),
     FOREIGN KEY (item_id) REFERENCES items (id),
@@ -321,16 +358,19 @@ CREATE TABLE purchase_items
 -- RETURNS
 CREATE TABLE returns
 (
-    id            BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id     BIGINT                            NOT NULL,
-    invoice_id    BIGINT                            NOT NULL,
-    return_number VARCHAR(60)                       NOT NULL,
-    return_date   DATE                              NOT NULL,
-    refund_amount DECIMAL(14, 2)                    NOT NULL,
-    refund_mode   ENUM ('CASH','UPI','CREDIT_NOTE') NOT NULL,
-    notes         TEXT,
-    created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
-    created_by    BIGINT,
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id      BIGINT                            NOT NULL,
+    invoice_id     BIGINT                            NULL,
+    return_number  VARCHAR(60)                       NOT NULL,
+    customer_name  VARCHAR(200)                      NULL,
+    customer_phone VARCHAR(20)                       NULL,
+    total_refund   DECIMAL(14, 2)                    NOT NULL DEFAULT 0.00,
+    refund_mode    ENUM ('CASH','UPI','CREDIT_NOTE') NOT NULL,
+    reason         TEXT                              NULL,
+    created_at     DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by     VARCHAR(100) DEFAULT NULL,
+    updated_by     VARCHAR(100) DEFAULT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants (id),
     FOREIGN KEY (invoice_id) REFERENCES invoices (id),
     UNIQUE KEY unique_return_per_tenant (return_number, tenant_id)
@@ -343,11 +383,15 @@ CREATE TABLE return_items
     tenant_id      BIGINT                            NOT NULL,
     return_id      BIGINT                            NOT NULL,
     item_id        BIGINT                            NOT NULL,
-    variant_id     BIGINT,
+    variant_id     BIGINT                            NULL,
     quantity       DECIMAL(12, 3)                    NOT NULL,
-    condition_type ENUM ('GOOD','DAMAGED','EXPIRED') NOT NULL,
     unit_price     DECIMAL(12, 2)                    NOT NULL,
-    line_refund    DECIMAL(14, 2)                    NOT NULL,
+    line_total     DECIMAL(14, 2)                    NOT NULL,
+    condition_type ENUM ('GOOD','DAMAGED','EXPIRED') NOT NULL,
+    created_at     DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by     VARCHAR(100) DEFAULT NULL,
+    updated_by     VARCHAR(100) DEFAULT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants (id),
     FOREIGN KEY (return_id) REFERENCES returns (id),
     FOREIGN KEY (item_id) REFERENCES items (id),
@@ -357,34 +401,35 @@ CREATE TABLE return_items
 -- EXPENSE CATEGORIES
 CREATE TABLE expense_categories
 (
-    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id   BIGINT       NOT NULL,
-    name        VARCHAR(150) NOT NULL,
-    description TEXT,
-    is_active   BOOLEAN      DEFAULT TRUE,
-    created_at  DATETIME     DEFAULT CURRENT_TIMESTAMP,
-    updated_at  DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by  VARCHAR(100) DEFAULT NULL,
-    updated_by  VARCHAR(100) DEFAULT NULL,
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id  BIGINT       NOT NULL,
+    name       VARCHAR(150) NOT NULL,
+    is_active  BOOLEAN      DEFAULT TRUE,
+    created_at DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by VARCHAR(100) DEFAULT NULL,
+    updated_by VARCHAR(100) DEFAULT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants (id)
 );
 
 -- EXPENSES
 CREATE TABLE expenses
 (
-    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id    BIGINT         NOT NULL,
-    category_id  BIGINT,
-    title        VARCHAR(200)   NOT NULL,
-    amount       DECIMAL(14, 2) NOT NULL,
-    expense_date DATE           NOT NULL,
-    payment_mode VARCHAR(100),
-    reference_no VARCHAR(100),
-    notes        TEXT,
-    created_at   DATETIME     DEFAULT CURRENT_TIMESTAMP,
-    created_by   VARCHAR(100) DEFAULT NULL,
+    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id       BIGINT         NOT NULL,
+    category_id     BIGINT         NULL,
+    payment_mode_id BIGINT         NOT NULL,
+    title           VARCHAR(200)   NOT NULL,
+    amount          DECIMAL(14, 2) NOT NULL,
+    expense_date    DATE           NOT NULL,
+    notes           TEXT           NULL,
+    created_at      DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by      VARCHAR(100) DEFAULT NULL,
+    updated_by      VARCHAR(100) DEFAULT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants (id),
-    FOREIGN KEY (category_id) REFERENCES expense_categories (id)
+    FOREIGN KEY (category_id) REFERENCES expense_categories (id),
+    FOREIGN KEY (payment_mode_id) REFERENCES payment_modes (id)
 );
 
 -- STAFF
@@ -392,35 +437,38 @@ CREATE TABLE staff
 (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY,
     tenant_id  BIGINT         NOT NULL,
-    user_id    BIGINT,
-    name       VARCHAR(150)   NOT NULL,
-    role       VARCHAR(100),
-    phone      VARCHAR(20),
-    email      VARCHAR(200),
-    salary     DECIMAL(12, 2) DEFAULT 0.00,
-    join_date  DATE,
+    name       VARCHAR(200)   NOT NULL,
+    phone      VARCHAR(20)    NULL,
+    email      VARCHAR(200)   NULL,
+    role       VARCHAR(100)   NULL,
+    salary     DECIMAL(12, 2) NULL,
+    join_date  DATE           NULL,
     is_active  BOOLEAN        DEFAULT TRUE,
     created_at DATETIME       DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME       DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (tenant_id) REFERENCES tenants (id),
-    FOREIGN KEY (user_id) REFERENCES users (id)
+    created_by VARCHAR(100)   DEFAULT NULL,
+    updated_by VARCHAR(100)   DEFAULT NULL,
+    FOREIGN KEY (tenant_id) REFERENCES tenants (id)
 );
 
 -- ATTENDANCE
 CREATE TABLE attendance
 (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id  BIGINT                                       NOT NULL,
-    staff_id   BIGINT                                       NOT NULL,
-    date       DATE                                         NOT NULL,
+    tenant_id  BIGINT                                        NOT NULL,
+    staff_id   BIGINT                                        NOT NULL,
+    date       DATE                                          NOT NULL,
     status     ENUM ('PRESENT','ABSENT','HALF_DAY','LEAVE') NOT NULL,
-    check_in   TIME,
-    check_out  TIME,
-    notes      TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    check_in   TIME         NULL,
+    check_out  TIME         NULL,
+    notes      TEXT         NULL,
+    created_at DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by VARCHAR(100) DEFAULT NULL,
+    updated_by VARCHAR(100) DEFAULT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants (id),
     FOREIGN KEY (staff_id) REFERENCES staff (id),
-    UNIQUE KEY unique_attendance (staff_id, date)
+    UNIQUE KEY unique_attendance_per_tenant (staff_id, date, tenant_id)
 );
 
 -- STAFF ADVANCES
@@ -431,10 +479,11 @@ CREATE TABLE staff_advances
     staff_id     BIGINT         NOT NULL,
     amount       DECIMAL(12, 2) NOT NULL,
     advance_date DATE           NOT NULL,
-    reason       VARCHAR(300),
-    is_recovered BOOLEAN  DEFAULT FALSE,
-    created_by   BIGINT,
-    created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+    notes        TEXT           NULL,
+    created_at   DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at   DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by   VARCHAR(100) DEFAULT NULL,
+    updated_by   VARCHAR(100) DEFAULT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants (id),
     FOREIGN KEY (staff_id) REFERENCES staff (id)
 );
@@ -444,13 +493,16 @@ CREATE TABLE activity_logs
 (
     id          BIGINT AUTO_INCREMENT PRIMARY KEY,
     tenant_id   BIGINT       NOT NULL,
-    user_id     BIGINT,
+    user_id     BIGINT       NOT NULL,
     action      VARCHAR(100) NOT NULL,
-    entity_type VARCHAR(80),
-    entity_id   BIGINT,
-    description TEXT,
-    ip_address  VARCHAR(45),
-    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    entity_type VARCHAR(60)  NULL,
+    entity_id   BIGINT       NULL,
+    description TEXT         NULL,
+    ip_address  VARCHAR(60)  NULL,
+    created_at  DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by  VARCHAR(100) DEFAULT NULL,
+    updated_by  VARCHAR(100) DEFAULT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants (id),
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
@@ -458,25 +510,24 @@ CREATE TABLE activity_logs
 -- AI LOGS
 CREATE TABLE ai_logs
 (
-    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id      BIGINT       NOT NULL,
-    user_id        BIGINT,
-    query_type     VARCHAR(100) NOT NULL,
-    input_payload  JSON,
-    output_payload JSON,
-    latency_ms     INT,
-    created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id   BIGINT       NOT NULL,
+    user_id     BIGINT       NOT NULL,
+    prompt      TEXT         NOT NULL,
+    response    TEXT         NULL,
+    module      VARCHAR(60)  NULL,
+    tokens_used INT          NULL,
+    created_at  DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by  VARCHAR(100) DEFAULT NULL,
+    updated_by  VARCHAR(100) DEFAULT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants (id),
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
--- ============================================
--- DEFAULT SEED DATA
--- ============================================
-
--- Default Tenant
-INSERT INTO tenants (name, slug, plan, is_active)
-VALUES ('BizFlow Demo', 'bizflow-demo', 'enterprise', TRUE);
+-- Default Tenant (tenant_id = NULL — root tenant has no parent)
+INSERT INTO tenants (tenant_id, name, code, email, is_active)
+VALUES (NULL, 'BizFlow Demo', 'BIZFLOW', 'admin@bizflow.com', TRUE);
 
 -- Default Roles (for tenant_id = 1)
 INSERT INTO roles (tenant_id, name, description)
@@ -485,10 +536,10 @@ VALUES (1, 'OWNER', 'Full access to everything'),
        (1, 'CASHIER', 'Billing and payments only'),
        (1, 'STAFF', 'Basic access');
 
--- Default User (admin@bizflow.com / password123)
+-- Default Admin User (password: password123 → BCrypt encoded)
 INSERT INTO users (tenant_id, name, email, password, is_active)
 VALUES (1, 'BizFlow Admin', 'admin@bizflow.com',
-        '$2b$10$zw0OroU8gwU9A0hw239M8uagRVYxvqwEdnb29UsG/3xMnc4d29rHK', TRUE);
+        '$2a$10$zw0OroU8gwU9A0hw239M8uagRVYxvqwEdnb29UsG/3xMnc4d29rHK', TRUE);
 
 -- Assign OWNER role to admin
 INSERT INTO user_roles (user_id, role_id)
