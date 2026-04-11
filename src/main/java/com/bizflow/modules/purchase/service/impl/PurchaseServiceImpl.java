@@ -5,6 +5,7 @@ import com.bizflow.common.constant.MessageConstant;
 import com.bizflow.common.enums.MovementDirection;
 import com.bizflow.common.enums.MovementType;
 import com.bizflow.common.enums.PurchasePaymentStatus;
+import com.bizflow.common.exception.ResourceNotFoundException;
 import com.bizflow.modules.catalogue.entity.Item;
 import com.bizflow.modules.catalogue.entity.ItemVariant;
 import com.bizflow.modules.catalogue.repository.ItemRepository;
@@ -49,7 +50,7 @@ public class PurchaseServiceImpl implements PurchaseService {
     public ApiResponse<PurchaseDto> getById(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Purchase purchase = purchaseRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.PURCHASE_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.PURCHASE_NOT_FOUND));
         return ApiResponse.success(toDto(purchase));
     }
 
@@ -76,7 +77,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         if (dto.getItems() != null) {
             for (PurchaseItemDto itemDto : dto.getItems()) {
                 Item item = itemRepository.findByIdAndTenantId(itemDto.getItemId(), tenantId)
-                        .orElseThrow(() -> new RuntimeException(MessageConstant.ITEM_NOT_FOUND));
+                        .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.ITEM_NOT_FOUND));
                 ItemVariant variant = itemDto.getVariantId() != null
                         ? variantRepository.findByIdAndTenantId(itemDto.getVariantId(), tenantId).orElse(null) : null;
 
@@ -112,7 +113,7 @@ public class PurchaseServiceImpl implements PurchaseService {
     public ApiResponse<PurchaseDto> updatePaymentStatus(Long id, String status) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Purchase purchase = purchaseRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.PURCHASE_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.PURCHASE_NOT_FOUND));
         purchase.setPaymentStatus(PurchasePaymentStatus.valueOf(status));
         return ApiResponse.success(MessageConstant.PURCHASE_UPDATED, toDto(purchaseRepository.save(purchase)));
     }

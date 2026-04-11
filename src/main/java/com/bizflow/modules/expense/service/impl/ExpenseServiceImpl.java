@@ -2,6 +2,7 @@ package com.bizflow.modules.expense.service.impl;
 
 import com.bizflow.common.ApiResponse;
 import com.bizflow.common.constant.MessageConstant;
+import com.bizflow.common.exception.ResourceNotFoundException;
 import com.bizflow.modules.billing.entity.PaymentMode;
 import com.bizflow.modules.billing.repository.PaymentModeRepository;
 import com.bizflow.modules.expense.dto.ExpenseDto;
@@ -43,7 +44,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     public ApiResponse<ExpenseDto> getById(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Expense expense = expenseRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
         return ApiResponse.success(toDto(expense));
     }
 
@@ -55,7 +56,7 @@ public class ExpenseServiceImpl implements ExpenseService {
                 ? categoryRepository.findByIdAndTenantId(dto.getCategoryId(), tenantId).orElse(null) : null;
 
         PaymentMode paymentMode = paymentModeRepository.findByIdAndTenantId(dto.getPaymentModeId(), tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
 
         Expense expense = Expense.builder().tenantId(tenantId).category(category).title(dto.getTitle())
                 .amount(dto.getAmount()).expenseDate(dto.getExpenseDate()).paymentMode(paymentMode)
@@ -68,13 +69,13 @@ public class ExpenseServiceImpl implements ExpenseService {
     public ApiResponse<ExpenseDto> update(Long id, ExpenseDto dto) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Expense expense = expenseRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
 
         ExpenseCategory category = dto.getCategoryId() != null
                 ? categoryRepository.findByIdAndTenantId(dto.getCategoryId(), tenantId).orElse(null) : null;
 
         PaymentMode paymentMode = paymentModeRepository.findByIdAndTenantId(dto.getPaymentModeId(), tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
 
         expense.setCategory(category);
         expense.setTitle(dto.getTitle());
@@ -90,7 +91,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     public ApiResponse<Void> delete(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Expense expense = expenseRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
         expenseRepository.delete(expense);
         return ApiResponse.success(MessageConstant.DELETED, null);
     }

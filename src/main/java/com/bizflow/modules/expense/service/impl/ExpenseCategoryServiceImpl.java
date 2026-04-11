@@ -2,6 +2,7 @@ package com.bizflow.modules.expense.service.impl;
 
 import com.bizflow.common.ApiResponse;
 import com.bizflow.common.constant.MessageConstant;
+import com.bizflow.common.exception.ResourceNotFoundException;
 import com.bizflow.modules.expense.dto.ExpenseCategoryDto;
 import com.bizflow.modules.expense.entity.ExpenseCategory;
 import com.bizflow.modules.expense.repository.ExpenseCategoryRepository;
@@ -36,7 +37,7 @@ public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
     public ApiResponse<ExpenseCategoryDto> update(Long id, ExpenseCategoryDto dto) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         ExpenseCategory cat = categoryRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
         cat.setName(dto.getName());
         cat.setIsActive(dto.getIsActive());
         return ApiResponse.success(MessageConstant.UPDATED, toDto(categoryRepository.save(cat)));
@@ -46,7 +47,7 @@ public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
     public ApiResponse<Void> delete(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         ExpenseCategory cat = categoryRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
         cat.setIsActive(false);
         categoryRepository.save(cat);
         return ApiResponse.success(MessageConstant.DELETED, null);

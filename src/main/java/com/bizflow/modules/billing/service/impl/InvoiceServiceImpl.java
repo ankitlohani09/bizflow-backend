@@ -5,6 +5,7 @@ import com.bizflow.common.constant.MessageConstant;
 import com.bizflow.common.enums.MovementDirection;
 import com.bizflow.common.enums.MovementType;
 import com.bizflow.common.enums.PaymentStatus;
+import com.bizflow.common.exception.ResourceNotFoundException;
 import com.bizflow.modules.billing.dto.InvoiceDto;
 import com.bizflow.modules.billing.dto.InvoiceItemDto;
 import com.bizflow.modules.billing.dto.PaymentDto;
@@ -55,7 +56,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     public ApiResponse<InvoiceDto> getById(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Invoice invoice = invoiceRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.INVOICE_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.INVOICE_NOT_FOUND));
         return ApiResponse.success(toDto(invoice));
     }
 
@@ -64,7 +65,6 @@ public class InvoiceServiceImpl implements InvoiceService {
     public ApiResponse<InvoiceDto> create(InvoiceDto dto) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
 
-        // Auto-generate invoice number
         long count = invoiceRepository.countByTenantId(tenantId) + 1;
         String invoiceNumber = "INV-" + String.format("%05d", count);
 
@@ -80,11 +80,10 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         invoice = invoiceRepository.save(invoice);
 
-        // Save invoice items + trigger stock OUT
         if (dto.getItems() != null) {
             for (InvoiceItemDto itemDto : dto.getItems()) {
                 Item item = itemRepository.findByIdAndTenantId(itemDto.getItemId(), tenantId)
-                        .orElseThrow(() -> new RuntimeException(MessageConstant.ITEM_NOT_FOUND));
+                        .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.ITEM_NOT_FOUND));
                 ItemVariant variant = itemDto.getVariantId() != null
                         ? variantRepository.findByIdAndTenantId(itemDto.getVariantId(), tenantId).orElse(null) : null;
 
@@ -95,7 +94,6 @@ public class InvoiceServiceImpl implements InvoiceService {
                         .lineTotal(itemDto.getLineTotal()).build();
                 invoiceItemRepository.save(invoiceItem);
 
-                // Stock OUT movement
                 if (item.getTrackInventory()) {
                     StockMovementDto movDto = new StockMovementDto();
                     movDto.setItemId(item.getId());
@@ -110,14 +108,10 @@ public class InvoiceServiceImpl implements InvoiceService {
             }
         }
 
-        // Save payments
         if (dto.getPayments() != null) {
             for (PaymentDto payDto : dto.getPayments()) {
-
-                com.bizflow.modules.billing.entity.PaymentMode paymentMode = paymentModeRepository
-                        .findByIdAndTenantId(payDto.getPaymentModeId(), tenantId)
-                        .orElseThrow(() -> new RuntimeException(MessageConstant.NOT_FOUND));
-
+                PaymentMode paymentMode = paymentModeRepository.findByIdAndTenantId(payDto.getPaymentModeId(), tenantId)
+                        .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
                 Payment payment = Payment.builder().tenantId(tenantId).invoice(invoice).paymentMode(paymentMode)
                         .amount(payDto.getAmount()).referenceNo(payDto.getReferenceNo()).paidAt(LocalDateTime.now())
                         .build();
@@ -133,17 +127,16 @@ public class InvoiceServiceImpl implements InvoiceService {
     public ApiResponse<InvoiceDto> addPayment(Long invoiceId, PaymentDto paymentDto) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Invoice invoice = invoiceRepository.findByIdAndTenantId(invoiceId, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.INVOICE_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.INVOICE_NOT_FOUND));
 
         PaymentMode paymentMode = paymentModeRepository.findByIdAndTenantId(paymentDto.getPaymentModeId(), tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
 
         Payment payment = Payment.builder().tenantId(tenantId).invoice(invoice).paymentMode(paymentMode)
                 .amount(paymentDto.getAmount()).referenceNo(paymentDto.getReferenceNo()).paidAt(LocalDateTime.now())
                 .build();
         paymentRepository.save(payment);
 
-        // Update paid amount & status
         List<Payment> allPayments = paymentRepository.findAllByInvoiceId(invoiceId);
         BigDecimal totalPaid = allPayments.stream().map(Payment::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
         invoice.setPaidAmount(totalPaid);

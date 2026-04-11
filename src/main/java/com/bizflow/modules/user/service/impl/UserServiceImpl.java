@@ -26,18 +26,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public ApiResponse<List<UserResponse>> getAllUsers() {
         Long tenantId = SecurityUtils.getCurrentTenantId();
-        List<UserResponse> users = userRepository.findAll().stream()
-                .filter(u -> u.getTenantId().equals(tenantId))
-                .map(this::toResponse)
-                .toList();
+        List<UserResponse> users = userRepository.findAll().stream().filter(u -> u.getTenantId().equals(tenantId))
+                .map(this::toResponse).toList();
         return ApiResponse.success(users);
     }
 
     @Override
     public ApiResponse<UserResponse> getUserById(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
-        User user = userRepository.findById(id)
-                .filter(u -> u.getTenantId().equals(tenantId))
+        User user = userRepository.findById(id).filter(u -> u.getTenantId().equals(tenantId))
                 .orElseThrow(() -> new ResourceNotFoundException("User", id));
         return ApiResponse.success(toResponse(user));
     }
@@ -50,15 +47,9 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(MessageConstant.EMAIL_ALREADY_EXISTS);
         }
 
-        User user = User.builder()
-                .tenantId(tenantId)
-                .name(request.getName())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .phone(request.getPhone())
-                .role(request.getRole())
-                .isActive(request.getIsActive())
-                .build();
+        User user = User.builder().tenantId(tenantId).name(request.getName()).email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword())).phone(request.getPhone())
+                .role(request.getRole()).isActive(request.getIsActive()).build();
 
         user = userRepository.save(user);
         return ApiResponse.success(MessageConstant.USER_CREATED, toResponse(user));
@@ -67,8 +58,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ApiResponse<UserResponse> updateUser(Long id, UserRequest request) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
-        User user = userRepository.findById(id)
-                .filter(u -> u.getTenantId().equals(tenantId))
+        User user = userRepository.findById(id).filter(u -> u.getTenantId().equals(tenantId))
                 .orElseThrow(() -> new ResourceNotFoundException("User", id));
 
         user.setName(request.getName());
@@ -88,24 +78,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public ApiResponse<Void> deleteUser(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
-        User user = userRepository.findById(id)
-                .filter(u -> u.getTenantId().equals(tenantId))
+        User user = userRepository.findById(id).filter(u -> u.getTenantId().equals(tenantId))
                 .orElseThrow(() -> new ResourceNotFoundException("User", id));
         userRepository.delete(user);
         return ApiResponse.success(MessageConstant.USER_DELETED, null);
     }
 
     private UserResponse toResponse(User user) {
-        return UserResponse.builder()
-                .id(user.getId())
-                .tenantId(user.getTenantId())
-                .name(user.getName())
-                .email(user.getEmail())
-                .phone(user.getPhone())
-                .role(user.getRole())
-                .isActive(user.getIsActive())
-                .createdAt(user.getCreatedAt())
-                .updatedAt(user.getUpdatedAt())
-                .build();
+        return UserResponse.builder().id(user.getId()).tenantId(user.getTenantId()).name(user.getName())
+                .email(user.getEmail()).phone(user.getPhone()).role(user.getRole()).isActive(user.getIsActive())
+                .createdAt(user.getCreatedAt()).updatedAt(user.getUpdatedAt()).build();
     }
 }

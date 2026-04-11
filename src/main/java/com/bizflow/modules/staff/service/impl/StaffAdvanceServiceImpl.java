@@ -2,6 +2,7 @@ package com.bizflow.modules.staff.service.impl;
 
 import com.bizflow.common.ApiResponse;
 import com.bizflow.common.constant.MessageConstant;
+import com.bizflow.common.exception.ResourceNotFoundException;
 import com.bizflow.modules.staff.dto.StaffAdvanceDto;
 import com.bizflow.modules.staff.entity.Staff;
 import com.bizflow.modules.staff.entity.StaffAdvance;
@@ -32,7 +33,7 @@ public class StaffAdvanceServiceImpl implements StaffAdvanceService {
     public ApiResponse<StaffAdvanceDto> create(StaffAdvanceDto dto) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Staff staff = staffRepository.findByIdAndTenantId(dto.getStaffId(), tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.STAFF_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.STAFF_NOT_FOUND));
 
         StaffAdvance advance = StaffAdvance.builder().tenantId(tenantId).staff(staff).amount(dto.getAmount())
                 .advanceDate(dto.getAdvanceDate()).notes(dto.getNotes()).build();
@@ -44,7 +45,7 @@ public class StaffAdvanceServiceImpl implements StaffAdvanceService {
     public ApiResponse<Void> delete(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         StaffAdvance advance = advanceRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
         advanceRepository.delete(advance);
         return ApiResponse.success(MessageConstant.DELETED, null);
     }

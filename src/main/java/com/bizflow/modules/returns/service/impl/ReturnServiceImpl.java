@@ -5,6 +5,7 @@ import com.bizflow.common.constant.MessageConstant;
 import com.bizflow.common.enums.ConditionType;
 import com.bizflow.common.enums.MovementDirection;
 import com.bizflow.common.enums.MovementType;
+import com.bizflow.common.exception.ResourceNotFoundException;
 import com.bizflow.modules.billing.entity.Invoice;
 import com.bizflow.modules.billing.repository.InvoiceRepository;
 import com.bizflow.modules.catalogue.entity.Item;
@@ -49,7 +50,7 @@ public class ReturnServiceImpl implements ReturnService {
     public ApiResponse<ReturnDto> getById(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Return ret = returnRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.RETURN_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.RETURN_NOT_FOUND));
         return ApiResponse.success(toDto(ret));
     }
 
@@ -75,7 +76,7 @@ public class ReturnServiceImpl implements ReturnService {
         if (dto.getItems() != null) {
             for (ReturnItemDto itemDto : dto.getItems()) {
                 Item item = itemRepository.findByIdAndTenantId(itemDto.getItemId(), tenantId)
-                        .orElseThrow(() -> new RuntimeException(MessageConstant.ITEM_NOT_FOUND));
+                        .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.ITEM_NOT_FOUND));
                 ItemVariant variant = itemDto.getVariantId() != null
                         ? variantRepository.findByIdAndTenantId(itemDto.getVariantId(), tenantId).orElse(null) : null;
 

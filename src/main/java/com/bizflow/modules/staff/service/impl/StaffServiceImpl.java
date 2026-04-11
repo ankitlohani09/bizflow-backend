@@ -2,6 +2,7 @@ package com.bizflow.modules.staff.service.impl;
 
 import com.bizflow.common.ApiResponse;
 import com.bizflow.common.constant.MessageConstant;
+import com.bizflow.common.exception.ResourceNotFoundException;
 import com.bizflow.modules.staff.dto.StaffDto;
 import com.bizflow.modules.staff.entity.Staff;
 import com.bizflow.modules.staff.repository.StaffRepository;
@@ -28,7 +29,7 @@ public class StaffServiceImpl implements StaffService {
     public ApiResponse<StaffDto> getById(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Staff staff = staffRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.STAFF_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.STAFF_NOT_FOUND));
         return ApiResponse.success(toDto(staff));
     }
 
@@ -45,7 +46,7 @@ public class StaffServiceImpl implements StaffService {
     public ApiResponse<StaffDto> update(Long id, StaffDto dto) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Staff staff = staffRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.STAFF_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.STAFF_NOT_FOUND));
         staff.setName(dto.getName());
         staff.setPhone(dto.getPhone());
         staff.setEmail(dto.getEmail());
@@ -60,7 +61,7 @@ public class StaffServiceImpl implements StaffService {
     public ApiResponse<Void> delete(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Staff staff = staffRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.STAFF_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.STAFF_NOT_FOUND));
         staff.setIsActive(false);
         staffRepository.save(staff);
         return ApiResponse.success(MessageConstant.DELETED, null);

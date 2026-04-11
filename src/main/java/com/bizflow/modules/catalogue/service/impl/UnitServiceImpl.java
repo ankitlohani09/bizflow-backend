@@ -2,6 +2,7 @@ package com.bizflow.modules.catalogue.service.impl;
 
 import com.bizflow.common.ApiResponse;
 import com.bizflow.common.constant.MessageConstant;
+import com.bizflow.common.exception.ResourceNotFoundException;
 import com.bizflow.modules.catalogue.dto.UnitDto;
 import com.bizflow.modules.catalogue.entity.Unit;
 import com.bizflow.modules.catalogue.repository.UnitRepository;
@@ -28,7 +29,7 @@ public class UnitServiceImpl implements UnitService {
     public ApiResponse<UnitDto> getById(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Unit unit = unitRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
         return ApiResponse.success(toDto(unit));
     }
 
@@ -43,7 +44,7 @@ public class UnitServiceImpl implements UnitService {
     public ApiResponse<UnitDto> update(Long id, UnitDto dto) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Unit unit = unitRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
         unit.setName(dto.getName());
         unit.setSymbol(dto.getSymbol());
         return ApiResponse.success(MessageConstant.UPDATED, toDto(unitRepository.save(unit)));
@@ -53,7 +54,7 @@ public class UnitServiceImpl implements UnitService {
     public ApiResponse<Void> delete(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Unit unit = unitRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
         unitRepository.delete(unit);
         return ApiResponse.success(MessageConstant.DELETED, null);
     }

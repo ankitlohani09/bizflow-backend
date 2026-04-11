@@ -117,5 +117,6 @@ public class MessageConstant {
     public static final String API_DOCUMENTATION = "BizFlow API";
     public static final String V1 = "1.0.0";
 
-    private MessageConstant() {}
+    private MessageConstant() {
+    }
 }

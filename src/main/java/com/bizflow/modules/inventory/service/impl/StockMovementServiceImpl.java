@@ -3,6 +3,7 @@ package com.bizflow.modules.inventory.service.impl;
 import com.bizflow.common.ApiResponse;
 import com.bizflow.common.constant.MessageConstant;
 import com.bizflow.common.enums.MovementDirection;
+import com.bizflow.common.exception.ResourceNotFoundException;
 import com.bizflow.modules.catalogue.entity.Item;
 import com.bizflow.modules.catalogue.entity.ItemVariant;
 import com.bizflow.modules.catalogue.repository.ItemRepository;
@@ -50,7 +51,7 @@ public class StockMovementServiceImpl implements StockMovementService {
         Long tenantId = SecurityUtils.getCurrentTenantId();
 
         Item item = itemRepository.findByIdAndTenantId(dto.getItemId(), tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.ITEM_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.ITEM_NOT_FOUND));
 
         ItemVariant variant = dto.getVariantId() != null
                 ? variantRepository.findByIdAndTenantId(dto.getVariantId(), tenantId).orElse(null) : null;

@@ -27,11 +27,11 @@ public class AuthServiceImpl implements AuthService {
 
         User user;
         if (request.getTenantId() != null) {
-            user = userRepository.findByEmailAndTenantId(request.getEmail(), request.getTenantId())
-                    .orElseThrow(() -> new RuntimeException(MessageConstant.INVALID_CREDENTIALS));
+            user = userRepository.findByEmailAndTenantId(request.getEmail(), request.getTenantId()).orElseThrow(
+                    () -> new BusinessException(MessageConstant.INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED));
         } else {
-            user = userRepository.findByEmail(request.getEmail())
-                    .orElseThrow(() -> new RuntimeException(MessageConstant.INVALID_CREDENTIALS));
+            user = userRepository.findByEmail(request.getEmail()).orElseThrow(
+                    () -> new BusinessException(MessageConstant.INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED));
         }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
@@ -39,20 +39,14 @@ public class AuthServiceImpl implements AuthService {
         }
 
         if (!user.getIsActive()) {
-            throw new RuntimeException(MessageConstant.ACCOUNT_DISABLED);
+            throw new BusinessException(MessageConstant.ACCOUNT_DISABLED, HttpStatus.FORBIDDEN);
         }
 
-        String token = jwtService.generateToken(
-                user.getEmail(), user.getId(), user.getTenantId(), user.getRole().name());
+        String token = jwtService.generateToken(user.getEmail(), user.getId(), user.getTenantId(),
+                user.getRole().name());
 
-        LoginResponse response = LoginResponse.builder()
-                .token(token)
-                .tokenType("Bearer")
-                .userId(user.getId())
-                .tenantId(user.getTenantId())
-                .name(user.getName())
-                .email(user.getEmail())
-                .role(user.getRole().name())
+        LoginResponse response = LoginResponse.builder().token(token).tokenType("Bearer").userId(user.getId())
+                .tenantId(user.getTenantId()).name(user.getName()).email(user.getEmail()).role(user.getRole().name())
                 .build();
 
         return ApiResponse.success(MessageConstant.LOGIN_SUCCESS, response);

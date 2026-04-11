@@ -2,6 +2,7 @@ package com.bizflow.modules.catalogue.service.impl;
 
 import com.bizflow.common.ApiResponse;
 import com.bizflow.common.constant.MessageConstant;
+import com.bizflow.common.exception.ResourceNotFoundException;
 import com.bizflow.modules.catalogue.dto.CategoryDto;
 import com.bizflow.modules.catalogue.entity.Category;
 import com.bizflow.modules.catalogue.repository.CategoryRepository;
@@ -28,7 +29,7 @@ public class CategoryServiceImpl implements CategoryService {
     public ApiResponse<CategoryDto> getById(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Category cat = categoryRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.CATEGORY_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.CATEGORY_NOT_FOUND));
         return ApiResponse.success(toDto(cat));
     }
 
@@ -38,7 +39,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category parent = null;
         if (dto.getParentId() != null) {
             parent = categoryRepository.findByIdAndTenantId(dto.getParentId(), tenantId)
-                    .orElseThrow(() -> new RuntimeException(MessageConstant.CATEGORY_NOT_FOUND));
+                    .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.CATEGORY_NOT_FOUND));
         }
         Category cat = Category.builder().tenantId(tenantId).name(dto.getName()).parent(parent).build();
         return ApiResponse.success(MessageConstant.CATEGORY_CREATED, toDto(categoryRepository.save(cat)));
@@ -48,11 +49,11 @@ public class CategoryServiceImpl implements CategoryService {
     public ApiResponse<CategoryDto> update(Long id, CategoryDto dto) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Category cat = categoryRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.CATEGORY_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.CATEGORY_NOT_FOUND));
         Category parent = null;
         if (dto.getParentId() != null) {
             parent = categoryRepository.findByIdAndTenantId(dto.getParentId(), tenantId)
-                    .orElseThrow(() -> new RuntimeException(MessageConstant.CATEGORY_NOT_FOUND));
+                    .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.CATEGORY_NOT_FOUND));
         }
         cat.setName(dto.getName());
         cat.setParent(parent);
@@ -63,7 +64,7 @@ public class CategoryServiceImpl implements CategoryService {
     public ApiResponse<Void> delete(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Category cat = categoryRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.CATEGORY_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.CATEGORY_NOT_FOUND));
         categoryRepository.delete(cat);
         return ApiResponse.success(MessageConstant.CATEGORY_DELETED, null);
     }

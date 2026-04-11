@@ -15,18 +15,12 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI openAPI() {
         return new OpenAPI()
-                .info(new Info()
-                        .title(MessageConstant.API_DOCUMENTATION)
-                        .description("BizFlow - AI Powered Business Operating System")
-                        .version(MessageConstant.V1))
+                .info(new Info().title(MessageConstant.API_DOCUMENTATION)
+                        .description("BizFlow - AI Powered Business Operating System").version(MessageConstant.V1))
                 .addSecurityItem(new SecurityRequirement().addList(MessageConstant.BEARER_NAME))
-                .components(new Components()
-                        .addSecuritySchemes(MessageConstant.BEARER_NAME,
-                                new SecurityScheme()
-                                        .name(MessageConstant.BEARER_NAME)
-                                        .type(SecurityScheme.Type.HTTP)
-                                        .scheme(MessageConstant.BEARER_NAME)
-                                        .bearerFormat(MessageConstant.JWT)
-                                        .description(MessageConstant.BEARER_AUTHENTICATION)));
+                .components(new Components().addSecuritySchemes(MessageConstant.BEARER_NAME,
+                        new SecurityScheme().name(MessageConstant.BEARER_NAME).type(SecurityScheme.Type.HTTP)
+                                .scheme(MessageConstant.BEARER_NAME).bearerFormat(MessageConstant.JWT)
+                                .description(MessageConstant.BEARER_AUTHENTICATION)));
     }
 }

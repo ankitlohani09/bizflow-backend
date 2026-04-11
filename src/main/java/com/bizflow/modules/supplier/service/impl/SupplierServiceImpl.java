@@ -2,6 +2,7 @@ package com.bizflow.modules.supplier.service.impl;
 
 import com.bizflow.common.ApiResponse;
 import com.bizflow.common.constant.MessageConstant;
+import com.bizflow.common.exception.ResourceNotFoundException;
 import com.bizflow.modules.supplier.dto.SupplierDto;
 import com.bizflow.modules.supplier.entity.Supplier;
 import com.bizflow.modules.supplier.repository.SupplierRepository;
@@ -28,7 +29,7 @@ public class SupplierServiceImpl implements SupplierService {
     public ApiResponse<SupplierDto> getById(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Supplier supplier = supplierRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.SUPPLIER_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.SUPPLIER_NOT_FOUND));
         return ApiResponse.success(toDto(supplier));
     }
 
@@ -45,7 +46,7 @@ public class SupplierServiceImpl implements SupplierService {
     public ApiResponse<SupplierDto> update(Long id, SupplierDto dto) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Supplier supplier = supplierRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.SUPPLIER_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.SUPPLIER_NOT_FOUND));
         supplier.setName(dto.getName());
         supplier.setContactName(dto.getContactName());
         supplier.setPhone(dto.getPhone());
@@ -60,7 +61,7 @@ public class SupplierServiceImpl implements SupplierService {
     public ApiResponse<Void> delete(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Supplier supplier = supplierRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.SUPPLIER_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.SUPPLIER_NOT_FOUND));
         supplierRepository.delete(supplier);
         return ApiResponse.success(MessageConstant.SUPPLIER_DELETED, null);
     }

@@ -42,7 +42,7 @@ public class UserController {
     @Operation(summary = "Update user by ID")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> updateUser(@PathVariable Long id,
-                                                                @Valid @RequestBody UserRequest request) {
+            @Valid @RequestBody UserRequest request) {
         return ResponseEntity.ok(userService.updateUser(id, request));
     }
 

@@ -2,6 +2,7 @@ package com.bizflow.modules.catalogue.service.impl;
 
 import com.bizflow.common.ApiResponse;
 import com.bizflow.common.constant.MessageConstant;
+import com.bizflow.common.exception.ResourceNotFoundException;
 import com.bizflow.modules.catalogue.dto.ItemDto;
 import com.bizflow.modules.catalogue.entity.Category;
 import com.bizflow.modules.catalogue.entity.Item;
@@ -34,7 +35,7 @@ public class ItemServiceImpl implements ItemService {
     public ApiResponse<ItemDto> getById(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Item item = itemRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.ITEM_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.ITEM_NOT_FOUND));
         return ApiResponse.success(toDto(item));
     }
 
@@ -50,7 +51,7 @@ public class ItemServiceImpl implements ItemService {
     public ApiResponse<ItemDto> update(Long id, ItemDto dto) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Item item = itemRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.ITEM_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.ITEM_NOT_FOUND));
         buildItem(item, dto, tenantId);
         return ApiResponse.success(MessageConstant.ITEM_UPDATED, toDto(itemRepository.save(item)));
     }
@@ -59,7 +60,7 @@ public class ItemServiceImpl implements ItemService {
     public ApiResponse<Void> delete(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Item item = itemRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.ITEM_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.ITEM_NOT_FOUND));
         itemRepository.delete(item);
         return ApiResponse.success(MessageConstant.ITEM_DELETED, null);
     }

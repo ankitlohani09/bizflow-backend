@@ -2,6 +2,7 @@ package com.bizflow.modules.staff.service.impl;
 
 import com.bizflow.common.ApiResponse;
 import com.bizflow.common.constant.MessageConstant;
+import com.bizflow.common.exception.ResourceNotFoundException;
 import com.bizflow.modules.staff.dto.AttendanceDto;
 import com.bizflow.modules.staff.entity.Attendance;
 import com.bizflow.modules.staff.entity.Staff;
@@ -40,11 +41,11 @@ public class AttendanceServiceImpl implements AttendanceService {
     public ApiResponse<AttendanceDto> mark(AttendanceDto dto) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Staff staff = staffRepository.findByIdAndTenantId(dto.getStaffId(), tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.STAFF_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.STAFF_NOT_FOUND));
 
         // Check if already marked
         attendanceRepository.findByStaffIdAndDateAndTenantId(staff.getId(), dto.getDate(), tenantId).ifPresent(a -> {
-            throw new RuntimeException(MessageConstant.ATTENDANCE_ALREADY_MARKED);
+            throw new ResourceNotFoundException(MessageConstant.ATTENDANCE_ALREADY_MARKED);
         });
 
         Attendance attendance = Attendance.builder().tenantId(tenantId).staff(staff).date(dto.getDate())
@@ -58,7 +59,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     public ApiResponse<AttendanceDto> update(Long id, AttendanceDto dto) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Attendance attendance = attendanceRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
         attendance.setStatus(dto.getStatus());
         attendance.setCheckIn(dto.getCheckIn());
         attendance.setCheckOut(dto.getCheckOut());

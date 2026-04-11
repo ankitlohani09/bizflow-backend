@@ -1,5 +1,7 @@
 package com.bizflow.security;
 
+import com.bizflow.common.exception.BusinessException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -10,7 +12,7 @@ public class SecurityUtils {
         if (auth != null && auth.getPrincipal() instanceof BizFlowUserDetails userDetails) {
             return userDetails;
         }
-        throw new RuntimeException("User not authenticated");
+        throw new BusinessException("User not authenticated", HttpStatus.UNAUTHORIZED);
     }
 
     public static String getCurrentUsername() {

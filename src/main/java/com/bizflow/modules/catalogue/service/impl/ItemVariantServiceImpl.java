@@ -2,6 +2,7 @@ package com.bizflow.modules.catalogue.service.impl;
 
 import com.bizflow.common.ApiResponse;
 import com.bizflow.common.constant.MessageConstant;
+import com.bizflow.common.exception.ResourceNotFoundException;
 import com.bizflow.modules.catalogue.dto.ItemVariantDto;
 import com.bizflow.modules.catalogue.entity.Item;
 import com.bizflow.modules.catalogue.entity.ItemVariant;
@@ -32,7 +33,7 @@ public class ItemVariantServiceImpl implements ItemVariantService {
     public ApiResponse<ItemVariantDto> getById(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         ItemVariant variant = variantRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
         return ApiResponse.success(toDto(variant));
     }
 
@@ -40,7 +41,7 @@ public class ItemVariantServiceImpl implements ItemVariantService {
     public ApiResponse<ItemVariantDto> create(ItemVariantDto dto) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Item item = itemRepository.findByIdAndTenantId(dto.getItemId(), tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.ITEM_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.ITEM_NOT_FOUND));
         ItemVariant variant = ItemVariant.builder().tenantId(tenantId).item(item).variantName(dto.getVariantName())
                 .sku(dto.getSku()).barcode(dto.getBarcode()).sellingPrice(dto.getSellingPrice())
                 .costPrice(dto.getCostPrice()).isActive(dto.getIsActive()).build();
@@ -51,7 +52,7 @@ public class ItemVariantServiceImpl implements ItemVariantService {
     public ApiResponse<ItemVariantDto> update(Long id, ItemVariantDto dto) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         ItemVariant variant = variantRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
         variant.setVariantName(dto.getVariantName());
         variant.setSku(dto.getSku());
         variant.setBarcode(dto.getBarcode());
@@ -65,7 +66,7 @@ public class ItemVariantServiceImpl implements ItemVariantService {
     public ApiResponse<Void> delete(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         ItemVariant variant = variantRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
         variantRepository.delete(variant);
         return ApiResponse.success(MessageConstant.DELETED, null);
     }

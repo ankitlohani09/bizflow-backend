@@ -2,6 +2,7 @@ package com.bizflow.modules.inventory.service.impl;
 
 import com.bizflow.common.ApiResponse;
 import com.bizflow.common.constant.MessageConstant;
+import com.bizflow.common.exception.ResourceNotFoundException;
 import com.bizflow.modules.inventory.dto.InventoryDto;
 import com.bizflow.modules.inventory.entity.Inventory;
 import com.bizflow.modules.inventory.repository.InventoryRepository;
@@ -29,7 +30,7 @@ public class InventoryServiceImpl implements InventoryService {
     public ApiResponse<InventoryDto> getById(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Inventory inv = inventoryRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.INVENTORY_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.INVENTORY_NOT_FOUND));
         return ApiResponse.success(toDto(inv));
     }
 
@@ -37,7 +38,7 @@ public class InventoryServiceImpl implements InventoryService {
     public ApiResponse<InventoryDto> updateThreshold(Long id, BigDecimal threshold) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Inventory inv = inventoryRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.INVENTORY_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.INVENTORY_NOT_FOUND));
         inv.setLowStockThreshold(threshold);
         inv.setUpdatedAt(java.time.LocalDateTime.now());
         return ApiResponse.success(MessageConstant.INVENTORY_UPDATED, toDto(inventoryRepository.save(inv)));

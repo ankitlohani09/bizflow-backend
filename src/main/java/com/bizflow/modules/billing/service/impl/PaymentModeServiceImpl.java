@@ -2,6 +2,7 @@ package com.bizflow.modules.billing.service.impl;
 
 import com.bizflow.common.ApiResponse;
 import com.bizflow.common.constant.MessageConstant;
+import com.bizflow.common.exception.ResourceNotFoundException;
 import com.bizflow.modules.billing.dto.PaymentModeDto;
 import com.bizflow.modules.billing.entity.PaymentMode;
 import com.bizflow.modules.billing.repository.PaymentModeRepository;
@@ -36,7 +37,7 @@ public class PaymentModeServiceImpl implements PaymentModeService {
     public ApiResponse<PaymentModeDto> update(Long id, PaymentModeDto dto) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         PaymentMode mode = paymentModeRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
         mode.setName(dto.getName());
         mode.setIsActive(dto.getIsActive());
         return ApiResponse.success(MessageConstant.UPDATED, toDto(paymentModeRepository.save(mode)));
@@ -46,8 +47,8 @@ public class PaymentModeServiceImpl implements PaymentModeService {
     public ApiResponse<Void> delete(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         PaymentMode mode = paymentModeRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new RuntimeException(MessageConstant.NOT_FOUND));
-        mode.setIsActive(false); // Soft delete
+                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
+        mode.setIsActive(false);
         paymentModeRepository.save(mode);
         return ApiResponse.success(MessageConstant.DELETED, null);
     }
