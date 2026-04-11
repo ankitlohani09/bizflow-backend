@@ -12,29 +12,21 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
+@EqualsAndHashCode(callSuper = true)
 public class User extends BaseEntity {
 
-    @Column(name = "name", nullable = false)
+    @Column(nullable = false)
     private String name;
 
-    @Column(name = "email", nullable = false)
+    @Column(nullable = false)
     private String email;
 
-    @Column(name = "password", nullable = false)
+    @Column(nullable = false)
     private String password;
 
     @Column(name = "phone")
     private String phone;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
-    private Role role;
-
     @Builder.Default
-    @Column(name = "is_active")
     private Boolean isActive = true;
-
-    public enum Role {
-        OWNER, MANAGER, CASHIER, STAFF
-    }
 }

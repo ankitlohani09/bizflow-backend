@@ -1,10 +1,11 @@
 package com.bizflow.modules.user.dto;
 
-import com.bizflow.modules.auth.entity.User;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 public class UserRequest {
@@ -21,8 +22,8 @@ public class UserRequest {
 
     private String phone;
 
-    @NotNull(message = "Role is required")
-    private User.Role role;
+    @NotEmpty(message = "At least one role is required")
+    private List<Long> roleIds;
 
     private Boolean isActive = true;
 }

@@ -21,43 +21,34 @@ public class TenantServiceImpl implements TenantService {
 
     @Override
     public ApiResponse<List<TenantResponse>> getAll() {
-        return ApiResponse.success(
-                tenantRepository.findAll().stream().map(this::toResponse).toList());
+        return ApiResponse.success(tenantRepository.findAll().stream().map(this::toResponse).toList());
     }
 
     @Override
     public ApiResponse<TenantResponse> getById(Long id) {
-        Tenant tenant = tenantRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Tenant", id));
+        Tenant tenant = tenantRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Tenant", id));
         return ApiResponse.success(toResponse(tenant));
     }
 
     @Override
     public ApiResponse<TenantResponse> create(TenantRequest request) {
-//        if (tenantRepository.existsByCode(request.getCode())) {
-//            throw new BusinessException("Tenant code already exists");
-//        }
+        // if (tenantRepository.existsByCode(request.getCode())) {
+        // throw new BusinessException("Tenant code already exists");
+        // }
         if (tenantRepository.existsByEmail(request.getEmail())) {
             throw new BusinessException("Tenant email already exists");
         }
 
-        Tenant tenant = Tenant.builder()
-                .name(request.getName())
-                .code(request.getCode().toUpperCase())
-                .email(request.getEmail())
-                .phone(request.getPhone())
-                .address(request.getAddress())
-                .businessType(request.getBusinessType())
-                .isActive(request.getIsActive())
-                .build();
+        Tenant tenant = Tenant.builder().name(request.getName()).code(request.getCode().toUpperCase())
+                .email(request.getEmail()).phone(request.getPhone()).address(request.getAddress())
+                .businessType(request.getBusinessType()).isActive(request.getIsActive()).build();
 
         return ApiResponse.success("Tenant created successfully", toResponse(tenantRepository.save(tenant)));
     }
 
     @Override
     public ApiResponse<TenantResponse> update(Long id, TenantRequest request) {
-        Tenant tenant = tenantRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Tenant", id));
+        Tenant tenant = tenantRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Tenant", id));
 
         tenant.setName(request.getName());
         tenant.setEmail(request.getEmail());
@@ -71,25 +62,15 @@ public class TenantServiceImpl implements TenantService {
 
     @Override
     public ApiResponse<Void> delete(Long id) {
-        Tenant tenant = tenantRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Tenant", id));
+        Tenant tenant = tenantRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Tenant", id));
         tenant.setIsActive(false);
         tenantRepository.save(tenant);
         return ApiResponse.success("Tenant deleted successfully", null);
     }
 
     private TenantResponse toResponse(Tenant t) {
-        return TenantResponse.builder()
-                .id(t.getId())
-                .name(t.getName())
-                .code(t.getCode())
-                .email(t.getEmail())
-                .phone(t.getPhone())
-                .address(t.getAddress())
-                .businessType(t.getBusinessType())
-                .isActive(t.getIsActive())
-                .createdAt(t.getCreatedAt())
-                .updatedAt(t.getUpdatedAt())
-                .build();
+        return TenantResponse.builder().id(t.getId()).name(t.getName()).code(t.getCode()).email(t.getEmail())
+                .phone(t.getPhone()).address(t.getAddress()).businessType(t.getBusinessType()).isActive(t.getIsActive())
+                .createdAt(t.getCreatedAt()).updatedAt(t.getUpdatedAt()).build();
     }
 }

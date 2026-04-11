@@ -24,8 +24,8 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public ApiResponse<List<CustomerResponse>> getAllCustomers() {
         Long tenantId = SecurityUtils.getCurrentTenantId();
-        return ApiResponse.success(
-                customerRepository.findAllByTenantId(tenantId).stream().map(this::toResponse).toList());
+        return ApiResponse
+                .success(customerRepository.findAllByTenantId(tenantId).stream().map(this::toResponse).toList());
     }
 
     @Override
@@ -44,19 +44,10 @@ public class CustomerServiceImpl implements CustomerService {
             throw new BusinessException(MessageConstant.ALREADY_EXISTS);
         }
 
-        Customer customer = Customer.builder()
-                .tenantId(tenantId)
-                .name(request.getName())
-                .email(request.getEmail())
-                .phone(request.getPhone())
-                .address(request.getAddress())
-                .city(request.getCity())
-                .state(request.getState())
-                .pincode(request.getPincode())
-                .gstin(request.getGstin())
-                .openingBalance(request.getOpeningBalance())
-                .isActive(request.getIsActive())
-                .build();
+        Customer customer = Customer.builder().tenantId(tenantId).name(request.getName()).email(request.getEmail())
+                .phone(request.getPhone()).address(request.getAddress()).city(request.getCity())
+                .state(request.getState()).pincode(request.getPincode()).gstin(request.getGstin())
+                .openingBalance(request.getOpeningBalance()).isActive(request.getIsActive()).build();
 
         return ApiResponse.success(MessageConstant.CUSTOMER_CREATED, toResponse(customerRepository.save(customer)));
     }
@@ -91,21 +82,9 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     private CustomerResponse toResponse(Customer c) {
-        return CustomerResponse.builder()
-                .id(c.getId())
-                .tenantId(c.getTenantId())
-                .name(c.getName())
-                .email(c.getEmail())
-                .phone(c.getPhone())
-                .address(c.getAddress())
-                .city(c.getCity())
-                .state(c.getState())
-                .pincode(c.getPincode())
-                .gstin(c.getGstin())
-                .openingBalance(c.getOpeningBalance())
-                .isActive(c.getIsActive())
-                .createdAt(c.getCreatedAt())
-                .updatedAt(c.getUpdatedAt())
-                .build();
+        return CustomerResponse.builder().id(c.getId()).tenantId(c.getTenantId()).name(c.getName()).email(c.getEmail())
+                .phone(c.getPhone()).address(c.getAddress()).city(c.getCity()).state(c.getState())
+                .pincode(c.getPincode()).gstin(c.getGstin()).openingBalance(c.getOpeningBalance())
+                .isActive(c.getIsActive()).createdAt(c.getCreatedAt()).updatedAt(c.getUpdatedAt()).build();
     }
 }

@@ -16,11 +16,11 @@ public class BizFlowUserDetails implements UserDetails {
     private Long userId;
     private Long tenantId;
     private String username;
-    private String role;
+    private List<String> roles;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role));
+        return roles.stream().map(role -> new SimpleGrantedAuthority("ROLE_" + role)).toList();
     }
 
     @Override

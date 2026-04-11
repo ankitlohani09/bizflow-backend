@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -21,11 +22,11 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private long jwtExpiration;
 
-    public String generateToken(String username, Long userId, Long tenantId, String role) {
+    public String generateToken(String username, Long userId, Long tenantId, List<String> roles) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("tenantId", tenantId);
-        claims.put("role", role);
+        claims.put("roles", roles);
         return buildToken(claims, username, jwtExpiration);
     }
 
@@ -35,8 +36,7 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token, String username) {
-        final String extractedUsername = extractUsername(token);
-        return extractedUsername.equals(username) && !isTokenExpired(token);
+        return extractUsername(token).equals(username) && !isTokenExpired(token);
     }
 
     public String extractUsername(String token) {
@@ -51,8 +51,9 @@ public class JwtService {
         return extractClaim(token, claims -> claims.get("tenantId", Long.class));
     }
 
-    public String extractRole(String token) {
-        return extractClaim(token, claims -> claims.get("role", String.class));
+    @SuppressWarnings("unchecked")
+    public List<String> extractRoles(String token) {
+        return extractClaim(token, claims -> (List<String>) claims.get("roles"));
     }
 
     private boolean isTokenExpired(String token) {
@@ -64,8 +65,7 @@ public class JwtService {
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
+        return claimsResolver.apply(extractAllClaims(token));
     }
 
     private Claims extractAllClaims(String token) {

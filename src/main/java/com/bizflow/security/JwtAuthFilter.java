@@ -26,7 +26,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
-
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -38,15 +37,18 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             final String username = jwtService.extractUsername(jwt);
             final Long userId = jwtService.extractUserId(jwt);
             final Long tenantId = jwtService.extractTenantId(jwt);
-            final String role = jwtService.extractRole(jwt);
+            final List<String> roles = jwtService.extractRoles(jwt);
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-
                 if (jwtService.isTokenValid(jwt, username)) {
-                    BizFlowUserDetails userDetails = new BizFlowUserDetails(userId, tenantId, username, role);
+
+                    BizFlowUserDetails userDetails = new BizFlowUserDetails(userId, tenantId, username, roles);
+
+                    List<SimpleGrantedAuthority> authorities = roles.stream()
+                            .map(role -> new SimpleGrantedAuthority("ROLE_" + role)).toList();
 
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,
-                            null, List.of(new SimpleGrantedAuthority("ROLE_" + role)));
+                            null, authorities);
 
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
