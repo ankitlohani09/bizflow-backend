@@ -34,9 +34,9 @@ public class TenantServiceImpl implements TenantService {
 
     @Override
     public ApiResponse<TenantResponse> create(TenantRequest request) {
-        if (tenantRepository.existsByCode(request.getCode())) {
-            throw new BusinessException("Tenant code already exists");
-        }
+//        if (tenantRepository.existsByCode(request.getCode())) {
+//            throw new BusinessException("Tenant code already exists");
+//        }
         if (tenantRepository.existsByEmail(request.getEmail())) {
             throw new BusinessException("Tenant email already exists");
         }
