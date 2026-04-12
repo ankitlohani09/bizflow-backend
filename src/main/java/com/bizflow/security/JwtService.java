@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -23,12 +24,23 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private long jwtExpiration;
 
+    @Value("${jwt.refresh-expiration:604800000}") // ✅ 7 days default (optional)
+    private long refreshExpiration;
+
     public String generateToken(String username, Long userId, Long tenantId, List<String> roles) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("tenantId", tenantId);
         claims.put("roles", roles);
         return buildToken(claims, username, jwtExpiration);
+    }
+
+    public String generateRefreshToken(String username, Long userId, Long tenantId) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
+        claims.put("tenantId", tenantId);
+        claims.put("type", "refresh");
+        return buildToken(claims, username, refreshExpiration);
     }
 
     private String buildToken(Map<String, Object> claims, String subject, long expiration) {
@@ -40,29 +52,36 @@ public class JwtService {
         return extractUsername(token).equals(username) && !isTokenExpired(token);
     }
 
+    public boolean isRefreshToken(String token) {
+        return "refresh".equals(extractClaim(token, claims -> claims.get("type", String.class)));
+    }
+
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
     public Long extractUserId(String token) {
-        return extractClaim(token, claims -> claims.get("userId", Long.class));
+        Object value = extractClaim(token, claims -> claims.get("userId"));
+        return value != null ? ((Number) value).longValue() : null;
     }
 
     public Long extractTenantId(String token) {
-        return extractClaim(token, claims -> claims.get("tenantId", Long.class));
+        Object value = extractClaim(token, claims -> claims.get("tenantId"));
+        return value != null ? ((Number) value).longValue() : null;
     }
 
     @SuppressWarnings("unchecked")
     public List<String> extractRoles(String token) {
-        return extractClaim(token, claims -> (List<String>) claims.get("roles"));
+        List<String> roles = extractClaim(token, claims -> (List<String>) claims.get("roles"));
+        return roles != null ? roles : Collections.emptyList();
     }
 
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
-    }
-
-    private Date extractExpiration(String token) {
+    public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
+    }
+
+    public boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -74,11 +93,7 @@ public class JwtService {
     }
 
     private SecretKey getSigningKey() {
-        // Decode the configured hex secret key to raw bytes for a consistent HMAC key
-        // across all environments (avoids platform-default charset issues with getBytes())
-        byte[] keyBytes = Decoders.BASE64.decode(java.util.HexFormat.of().parseHex(secretKey).length > 0
-                ? java.util.Base64.getEncoder().encodeToString(java.util.HexFormat.of().parseHex(secretKey))
-                : secretKey);
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }

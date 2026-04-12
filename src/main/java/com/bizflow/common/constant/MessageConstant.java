@@ -29,7 +29,10 @@ public class MessageConstant {
     public static final String JWT = "JWT";
     public static final String BEARER_AUTHENTICATION = "Bearer Authentication";
     public static final String TOKEN_EXPIRED = "{\"message\": \"Token expired or invalid\"}";
-    public static final String SESSION_EXPIRED = "Session expired";
+    public static final String SESSION_EXPIRED = "Session expired. Please login again.";
+    public static final String ACCESS_DENIED = "Access denied. Insufficient permissions.";
+    public static final String INVALID_TOKEN = "Invalid or tampered token.";
+    public static final String TOKEN_REFRESHED = "Token refreshed successfully";
 
     // Tenant
     public static final String TENANT_NOT_FOUND = "Tenant not found";
