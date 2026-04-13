@@ -20,7 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/customers")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'USER')")
+@PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'MANAGER', 'USER')")
 public class CustomerController {
 
     private final CustomerService customerService;
@@ -50,7 +50,7 @@ public class CustomerController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validation error"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "Already exists") })
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'MANAGER')")
     public ResponseEntity<ApiResponse<CustomerResponse>> createCustomer(@Valid @RequestBody CustomerRequest request) {
         return ResponseEntity.ok(customerService.createCustomer(request));
     }
@@ -60,7 +60,7 @@ public class CustomerController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Customer updated"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Not found") })
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'MANAGER')")
     public ResponseEntity<ApiResponse<CustomerResponse>> updateCustomer(
             @Parameter(description = "Customer ID", required = true) @PathVariable Long id,
             @Valid @RequestBody CustomerRequest request) {
@@ -72,7 +72,7 @@ public class CustomerController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Customer deleted"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Not found") })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER')")
     public ResponseEntity<ApiResponse<Void>> deleteCustomer(
             @Parameter(description = "Customer ID", required = true) @PathVariable Long id) {
         return ResponseEntity.ok(customerService.deleteCustomer(id));

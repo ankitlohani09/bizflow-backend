@@ -3,6 +3,7 @@ package com.bizflow.modules.billing.repository;
 import com.bizflow.modules.billing.entity.Invoice;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,4 +15,7 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     Optional<Invoice> findByInvoiceNumberAndTenantId(String invoiceNumber, Long tenantId);
 
     long countByTenantId(Long tenantId);
+
+    List<Invoice> findAllByTenantIdAndCreatedAtBetweenOrderByCreatedAtAsc(Long tenantId, LocalDateTime from,
+            LocalDateTime to);
 }

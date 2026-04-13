@@ -18,7 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')") // ✅ Sab endpoints ADMIN only
+@PreAuthorize("hasAnyRole('ADMIN', 'OWNER')") // ✅ Sab endpoints ADMIN/OWNER only
 public class UserController {
 
     private final UserService userService;
