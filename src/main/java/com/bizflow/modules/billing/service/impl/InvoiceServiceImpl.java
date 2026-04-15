@@ -22,6 +22,8 @@ import com.bizflow.modules.catalogue.entity.Item;
 import com.bizflow.modules.catalogue.entity.ItemVariant;
 import com.bizflow.modules.catalogue.repository.ItemRepository;
 import com.bizflow.modules.catalogue.repository.ItemVariantRepository;
+import com.bizflow.modules.customer.entity.Customer;
+import com.bizflow.modules.customer.repository.CustomerRepository;
 import com.bizflow.modules.inventory.dto.StockMovementDto;
 import com.bizflow.modules.inventory.service.StockMovementService;
 import com.bizflow.security.SecurityUtils;
@@ -44,8 +46,10 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final ItemVariantRepository variantRepository;
     private final StockMovementService stockMovementService;
     private final PaymentModeRepository paymentModeRepository;
+    private final CustomerRepository customerRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public ApiResponse<List<InvoiceDto>> getAll() {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         return ApiResponse.success(
@@ -53,6 +57,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ApiResponse<InvoiceDto> getById(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Invoice invoice = invoiceRepository.findByIdAndTenantId(id, tenantId)
@@ -77,6 +82,19 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .paidAmount(dto.getPaidAmount() != null ? dto.getPaidAmount() : BigDecimal.ZERO)
                 .changeAmount(dto.getChangeAmount() != null ? dto.getChangeAmount() : BigDecimal.ZERO)
                 .paymentStatus(dto.getPaymentStatus()).notes(dto.getNotes()).build();
+
+        if (dto.getCustomerId() != null) {
+            Customer customer = customerRepository.findByIdAndTenantId(dto.getCustomerId(), tenantId)
+                    .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
+            invoice.setCustomer(customer);
+            
+            // Award Loyalty Points (1% of Grand Total)
+            int points = dto.getGrandTotal().divide(BigDecimal.valueOf(100), 0, BigDecimal.ROUND_FLOOR).intValue();
+            if (points > 0) {
+                customer.setLoyaltyPoints((customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0) + points);
+                customerRepository.save(customer);
+            }
+        }
 
         invoice = invoiceRepository.save(invoice);
 
@@ -156,6 +174,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         dto.setId(i.getId());
         dto.setInvoiceNumber(i.getInvoiceNumber());
         dto.setInvoiceType(i.getInvoiceType());
+        dto.setCustomerId(i.getCustomer() != null ? i.getCustomer().getId() : null);
         dto.setCustomerName(i.getCustomerName());
         dto.setCustomerPhone(i.getCustomerPhone());
         dto.setSubtotal(i.getSubtotal());

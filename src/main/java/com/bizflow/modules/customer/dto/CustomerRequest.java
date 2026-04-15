@@ -19,5 +19,6 @@ public class CustomerRequest {
     private String pincode;
     private String gstin;
     private BigDecimal openingBalance = BigDecimal.ZERO;
+    private Integer loyaltyPoints = 0;
     private Boolean isActive = true;
 }

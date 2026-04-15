@@ -16,6 +16,8 @@ public class InventoryDto {
     private BigDecimal damagedQty;
     private BigDecimal expiredQty;
     private BigDecimal reservedQty;
+    private BigDecimal sellingPrice;
+    private BigDecimal costPrice;
     private BigDecimal lowStockThreshold;
     private Boolean lowStock;
     private LocalDateTime updatedAt;

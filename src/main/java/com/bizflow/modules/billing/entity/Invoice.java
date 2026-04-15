@@ -3,6 +3,7 @@ package com.bizflow.modules.billing.entity;
 import com.bizflow.common.BaseEntity;
 import com.bizflow.common.enums.InvoiceType;
 import com.bizflow.common.enums.PaymentStatus;
+import com.bizflow.modules.customer.entity.Customer;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -24,6 +25,10 @@ public class Invoice extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "invoice_type", nullable = false)
     private InvoiceType invoiceType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
 
     @Column(name = "customer_name", length = 200)
     private String customerName;

@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.List;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
+    @org.springframework.data.jpa.repository.Query("SELECT p FROM Payment p JOIN FETCH p.paymentMode WHERE p.invoice.id = :invoiceId")
     List<Payment> findAllByInvoiceId(Long invoiceId);
 
     List<Payment> findAllByTenantIdAndPaidAtBetween(Long tenantId, LocalDateTime from, LocalDateTime to);

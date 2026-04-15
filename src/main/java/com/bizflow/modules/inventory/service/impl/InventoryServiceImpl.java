@@ -16,6 +16,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@org.springframework.transaction.annotation.Transactional(readOnly = true)
 public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryRepository inventoryRepository;
@@ -54,6 +55,8 @@ public class InventoryServiceImpl implements InventoryService {
         dto.setDamagedQty(i.getDamagedQty());
         dto.setExpiredQty(i.getExpiredQty());
         dto.setReservedQty(i.getReservedQty());
+        dto.setSellingPrice(i.getItem().getSellingPrice());
+        dto.setCostPrice(i.getItem().getCostPrice());
         dto.setLowStockThreshold(i.getLowStockThreshold());
         dto.setUpdatedAt(i.getUpdatedAt());
         if (i.getLowStockThreshold() != null) {
