@@ -2,6 +2,7 @@ package com.bizflow.modules.catalogue.service.impl;
 
 import com.bizflow.common.ApiResponse;
 import com.bizflow.common.constant.MessageConstant;
+import com.bizflow.common.exception.BusinessException;
 import com.bizflow.common.exception.ResourceNotFoundException;
 import com.bizflow.modules.catalogue.dto.CategoryDto;
 import com.bizflow.modules.catalogue.entity.Category;
@@ -9,6 +10,7 @@ import com.bizflow.modules.catalogue.repository.CategoryRepository;
 import com.bizflow.modules.catalogue.service.CategoryService;
 import com.bizflow.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -36,12 +38,19 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public ApiResponse<CategoryDto> create(CategoryDto dto) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
+        String normalizedName = normalizeName(dto.getName());
+
+        if (categoryRepository.existsByTenantIdAndNameIgnoreCase(tenantId, normalizedName)) {
+            throw new BusinessException(MessageConstant.CATEGORY_ALREADY_EXISTS, HttpStatus.CONFLICT);
+        }
+
         Category parent = null;
         if (dto.getParentId() != null) {
             parent = categoryRepository.findByIdAndTenantId(dto.getParentId(), tenantId)
                     .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.CATEGORY_NOT_FOUND));
         }
-        Category cat = Category.builder().tenantId(tenantId).name(dto.getName()).parent(parent).build();
+
+        Category cat = Category.builder().tenantId(tenantId).name(normalizedName).parent(parent).build();
         return ApiResponse.success(MessageConstant.CATEGORY_CREATED, toDto(categoryRepository.save(cat)));
     }
 
@@ -50,12 +59,22 @@ public class CategoryServiceImpl implements CategoryService {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Category cat = categoryRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.CATEGORY_NOT_FOUND));
+
+        String normalizedName = normalizeName(dto.getName());
+        if (categoryRepository.existsByTenantIdAndNameIgnoreCaseAndIdNot(tenantId, normalizedName, id)) {
+            throw new BusinessException(MessageConstant.CATEGORY_ALREADY_EXISTS, HttpStatus.CONFLICT);
+        }
+
         Category parent = null;
         if (dto.getParentId() != null) {
+            if (id.equals(dto.getParentId())) {
+                throw new BusinessException(MessageConstant.CATEGORY_PARENT_INVALID);
+            }
             parent = categoryRepository.findByIdAndTenantId(dto.getParentId(), tenantId)
                     .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.CATEGORY_NOT_FOUND));
         }
-        cat.setName(dto.getName());
+
+        cat.setName(normalizedName);
         cat.setParent(parent);
         return ApiResponse.success(MessageConstant.CATEGORY_UPDATED, toDto(categoryRepository.save(cat)));
     }
@@ -65,8 +84,20 @@ public class CategoryServiceImpl implements CategoryService {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Category cat = categoryRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.CATEGORY_NOT_FOUND));
+
+        if (categoryRepository.existsByTenantIdAndParentId(tenantId, id)) {
+            throw new BusinessException(MessageConstant.CATEGORY_HAS_CHILDREN);
+        }
+
         categoryRepository.delete(cat);
         return ApiResponse.success(MessageConstant.CATEGORY_DELETED, null);
+    }
+
+    private String normalizeName(String name) {
+        if (name == null || name.isBlank()) {
+            throw new BusinessException(MessageConstant.CATEGORY_NAME_REQUIRED);
+        }
+        return name.trim();
     }
 
     private CategoryDto toDto(Category c) {

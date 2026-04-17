@@ -26,10 +26,8 @@ public class ReportController {
     @Operation(summary = "Get dashboard summary")
     @GetMapping("/dashboard")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getDashboard(
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
         return ResponseEntity.ok(reportService.getDashboard(fromDate, toDate));
     }
 

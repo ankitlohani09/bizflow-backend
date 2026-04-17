@@ -87,11 +87,12 @@ public class InvoiceServiceImpl implements InvoiceService {
             Customer customer = customerRepository.findByIdAndTenantId(dto.getCustomerId(), tenantId)
                     .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
             invoice.setCustomer(customer);
-            
+
             // Award Loyalty Points (1% of Grand Total)
             int points = dto.getGrandTotal().divide(BigDecimal.valueOf(100), 0, BigDecimal.ROUND_FLOOR).intValue();
             if (points > 0) {
-                customer.setLoyaltyPoints((customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0) + points);
+                customer.setLoyaltyPoints(
+                        (customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0) + points);
                 customerRepository.save(customer);
             }
         }

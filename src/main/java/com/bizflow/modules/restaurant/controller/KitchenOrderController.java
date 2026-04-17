@@ -19,7 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/kitchen-orders")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'MANAGER', 'USER')")  // ✅ Default - sab access
+@PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'MANAGER', 'USER')") // ✅ Default - sab access
 public class KitchenOrderController {
 
     private final KitchenOrderService kitchenOrderService;
@@ -40,16 +40,14 @@ public class KitchenOrderController {
     @Operation(summary = "Create kitchen order")
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'MANAGER', 'USER')")
-    public ResponseEntity<ApiResponse<KitchenOrderResponse>> create(
-            @Valid @RequestBody KitchenOrderRequest request) {
+    public ResponseEntity<ApiResponse<KitchenOrderResponse>> create(@Valid @RequestBody KitchenOrderRequest request) {
         return ResponseEntity.ok(kitchenOrderService.create(request));
     }
 
     @Operation(summary = "Update kitchen order status")
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'MANAGER')")
-    public ResponseEntity<ApiResponse<KitchenOrderResponse>> updateStatus(
-            @PathVariable Long id,
+    public ResponseEntity<ApiResponse<KitchenOrderResponse>> updateStatus(@PathVariable Long id,
             @RequestParam KitchenOrderStatus status) {
         return ResponseEntity.ok(kitchenOrderService.updateStatus(id, status));
     }

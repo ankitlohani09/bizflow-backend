@@ -35,24 +35,20 @@ public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
     private final ObjectMapper objectMapper;
 
-    private static final String[] PUBLIC_URLS = {
-            "/auth/**",
-            "/v3/api-docs/**",
-            "/swagger-ui/**",
-            "/swagger-ui.html"
-    };
+    private static final String[] PUBLIC_URLS = { "/auth/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html" };
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        http.csrf(AbstractHttpConfigurer::disable).cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(PUBLIC_URLS).permitAll()
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth.requestMatchers(PUBLIC_URLS).permitAll()
 
                         // ✅ Users - ADMIN + OWNER only
                         .requestMatchers("/api/v1/users/**").hasAnyRole("ADMIN", "OWNER")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/roles/**").hasAnyRole("ADMIN", "OWNER")
+                        .requestMatchers("/api/v1/roles/**").hasRole("ADMIN")
 
                         // ✅ Customers
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/customers/**").hasAnyRole("ADMIN", "OWNER")
@@ -60,7 +56,7 @@ public class SecurityConfig {
 
                         // ✅ Categories
                         .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").authenticated()
-                        .requestMatchers("/api/v1/categories/**").hasAnyRole("ADMIN", "OWNER", "MANAGER")
+                        .requestMatchers("/api/v1/categories/**").hasRole("ADMIN")
 
                         // ✅ Items & Variants
                         .requestMatchers(HttpMethod.GET, "/api/v1/items/**").authenticated()
@@ -82,8 +78,9 @@ public class SecurityConfig {
 
                         // ✅ Kitchen Orders (Restaurant)
                         .requestMatchers(HttpMethod.GET, "/api/v1/kitchen-orders/**").authenticated()
-                        .requestMatchers(HttpMethod.PATCH, "/api/v1/kitchen-orders/**").hasAnyRole("ADMIN", "OWNER", "MANAGER")
-                        .requestMatchers("/api/v1/kitchen-orders/**").hasAnyRole("ADMIN", "OWNER", "MANAGER", "USER")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/kitchen-orders/**")
+                        .hasAnyRole("ADMIN", "OWNER", "MANAGER").requestMatchers("/api/v1/kitchen-orders/**")
+                        .hasAnyRole("ADMIN", "OWNER", "MANAGER", "USER")
 
                         // ✅ Purchases
                         .requestMatchers("/api/v1/purchases/**").hasAnyRole("ADMIN", "OWNER", "MANAGER")
@@ -105,10 +102,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/suppliers/**").hasAnyRole("ADMIN", "OWNER", "MANAGER")
 
                         // ✅ Reports - ADMIN+OWNER+MANAGER (P&L sirf ADMIN+OWNER — @PreAuthorize handles it)
-                        .requestMatchers("/api/v1/reports/**").hasAnyRole("ADMIN", "OWNER", "MANAGER")  // ✅ NEW
+                        .requestMatchers("/api/v1/reports/**").hasAnyRole("ADMIN", "OWNER", "MANAGER") // ✅ NEW
 
                         // ✅ Tenants - ADMIN only (super admin)
-                        .requestMatchers("/api/v1/tenants/**").hasRole("ADMIN")  // ✅ NEW
+                        .requestMatchers("/api/v1/tenants/**").hasRole("ADMIN") // ✅ NEW
 
                         // ✅ Logs, White Label, AI
                         .requestMatchers("/api/v1/ai-logs/**").hasAnyRole("ADMIN", "OWNER")
@@ -116,23 +113,18 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/white-label/**").hasAnyRole("ADMIN", "OWNER")
                         .requestMatchers("/api/v1/ai/**").hasAnyRole("ADMIN", "OWNER", "MANAGER")
 
-                        .anyRequest().authenticated()
-                )
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(401);
-                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            response.getWriter().write(objectMapper.writeValueAsString(
-                                    Map.of("success", false, "message", MessageConstant.SESSION_EXPIRED)));
-                        })
-                        .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            response.setStatus(403);
-                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            response.getWriter().write(objectMapper.writeValueAsString(
-                                    Map.of("success", false, "message", MessageConstant.ACCESS_DENIED)));
-                        })
-                )
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                        .anyRequest().authenticated())
+                .exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(401);
+                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                    response.getWriter().write(objectMapper
+                            .writeValueAsString(Map.of("success", false, "message", MessageConstant.SESSION_EXPIRED)));
+                }).accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.setStatus(403);
+                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                    response.getWriter().write(objectMapper
+                            .writeValueAsString(Map.of("success", false, "message", MessageConstant.ACCESS_DENIED)));
+                })).addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
