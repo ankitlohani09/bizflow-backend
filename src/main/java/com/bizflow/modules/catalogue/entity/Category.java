@@ -20,4 +20,8 @@ public class Category extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private Category parent;
+
+    @Builder.Default
+    @Column(name = "is_active")
+    private Boolean isActive = true;
 }

@@ -38,4 +38,10 @@ public class InventoryController {
             @RequestParam BigDecimal threshold) {
         return ResponseEntity.ok(inventoryService.updateThreshold(id, threshold));
     }
+
+    @Operation(summary = "Synchronize missing inventory records")
+    @PostMapping("/sync")
+    public ResponseEntity<ApiResponse<String>> syncMissingInventory() {
+        return ResponseEntity.ok(inventoryService.syncMissingInventory());
+    }
 }

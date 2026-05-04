@@ -27,22 +27,14 @@ public class DataInitializer implements CommandLineRunner {
             return;
         }
 
-        User user = User.builder()
-                .tenantId(1L)
-                .name("Admin User")
-                .email("admin@bizflow.com")
-                .password(passwordEncoder.encode("admin")) // ✅ REAL FIX
-                .isActive(true)
-                .build();
+        User user = User.builder().tenantId(1L).name("Admin User").email("admin@bizflow.com")
+                .password(passwordEncoder.encode("admin")).isActive(true).build();
 
         user = userRepository.save(user);
 
         Role adminRole = roleRepository.findByNameAndTenantId("ADMIN", 1L).get();
 
-        UserRole userRole = UserRole.builder()
-                .userId(user.getId())
-                .roleId(adminRole.getId())
-                .build();
+        UserRole userRole = UserRole.builder().userId(user.getId()).roleId(adminRole.getId()).build();
 
         userRoleRepository.save(userRole);
     }

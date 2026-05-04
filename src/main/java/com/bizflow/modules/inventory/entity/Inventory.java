@@ -44,4 +44,17 @@ public class Inventory extends BaseEntity {
 
     @Column(name = "low_stock_threshold", precision = 12, scale = 3)
     private BigDecimal lowStockThreshold;
+
+    @Column(name = "batch_no", length = 50)
+    private String batchNo;
+
+    @Column(name = "expiry_date")
+    private java.time.LocalDateTime expiryDate;
+
+    @Builder.Default
+    @Column(name = "mrp", precision = 14, scale = 2)
+    private BigDecimal mrp = BigDecimal.ZERO;
+
+    @Column(name = "location", length = 100)
+    private String location;
 }

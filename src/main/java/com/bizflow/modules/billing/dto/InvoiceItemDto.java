@@ -15,5 +15,7 @@ public class InvoiceItemDto {
     private BigDecimal unitPrice;
     private BigDecimal discountPct;
     private BigDecimal taxRate;
+    private Long taxRuleId;
+    private String taxRuleName;
     private BigDecimal lineTotal;
 }

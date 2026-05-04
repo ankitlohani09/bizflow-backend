@@ -44,6 +44,10 @@ public class InvoiceItem extends BaseEntity {
     @Column(name = "tax_rate", precision = 5, scale = 2)
     private BigDecimal taxRate = BigDecimal.ZERO;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tax_rule_id")
+    private TaxRule taxRule;
+
     @Column(name = "line_total", nullable = false, precision = 14, scale = 2)
     private BigDecimal lineTotal;
 }

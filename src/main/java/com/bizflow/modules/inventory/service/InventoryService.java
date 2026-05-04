@@ -12,4 +12,6 @@ public interface InventoryService {
     ApiResponse<InventoryDto> getById(Long id);
 
     ApiResponse<InventoryDto> updateThreshold(Long id, BigDecimal threshold);
+
+    ApiResponse<String> syncMissingInventory();
 }

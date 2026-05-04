@@ -11,19 +11,28 @@ import com.bizflow.modules.catalogue.repository.CategoryRepository;
 import com.bizflow.modules.catalogue.repository.ItemRepository;
 import com.bizflow.modules.catalogue.repository.UnitRepository;
 import com.bizflow.modules.catalogue.service.ItemService;
+import com.bizflow.modules.billing.entity.TaxRule;
+import com.bizflow.modules.billing.repository.TaxRuleRepository;
+import com.bizflow.modules.inventory.entity.Inventory;
+import com.bizflow.modules.inventory.repository.InventoryRepository;
 import com.bizflow.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
     private final CategoryRepository categoryRepository;
     private final UnitRepository unitRepository;
+    private final InventoryRepository inventoryRepository;
+    private final TaxRuleRepository taxRuleRepository;
 
     @Override
     public ApiResponse<List<ItemDto>> getAll() {
@@ -44,7 +53,15 @@ public class ItemServiceImpl implements ItemService {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Item item = buildItem(new Item(), dto, tenantId);
         item.setTenantId(tenantId);
-        return ApiResponse.success(MessageConstant.ITEM_CREATED, toDto(itemRepository.save(item)));
+        Item savedItem = itemRepository.save(item);
+
+        // Initialize Inventory record for the new item
+        Inventory inventory = Inventory.builder().item(savedItem).availableQty(BigDecimal.ZERO)
+                .damagedQty(BigDecimal.ZERO).expiredQty(BigDecimal.ZERO).reservedQty(BigDecimal.ZERO).tenantId(tenantId)
+                .build();
+        inventoryRepository.save(inventory);
+
+        return ApiResponse.success(MessageConstant.ITEM_CREATED, toDto(savedItem));
     }
 
     @Override
@@ -70,10 +87,13 @@ public class ItemServiceImpl implements ItemService {
                 ? categoryRepository.findByIdAndTenantId(dto.getCategoryId(), tenantId).orElse(null) : null;
         Unit unit = dto.getUnitId() != null ? unitRepository.findByIdAndTenantId(dto.getUnitId(), tenantId).orElse(null)
                 : null;
+        TaxRule taxRule = dto.getTaxRuleId() != null
+                ? taxRuleRepository.findByIdAndTenantId(dto.getTaxRuleId(), tenantId).orElse(null) : null;
         item.setName(dto.getName());
         item.setType(dto.getType());
         item.setCategory(category);
         item.setUnit(unit);
+        item.setTaxRule(taxRule);
         item.setDescription(dto.getDescription());
         item.setBarcode(dto.getBarcode());
         item.setSellingPrice(dto.getSellingPrice());
@@ -99,6 +119,8 @@ public class ItemServiceImpl implements ItemService {
         dto.setSellingPrice(i.getSellingPrice());
         dto.setCostPrice(i.getCostPrice());
         dto.setTaxRate(i.getTaxRate());
+        dto.setTaxRuleId(i.getTaxRule() != null ? i.getTaxRule().getId() : null);
+        dto.setTaxRuleName(i.getTaxRule() != null ? i.getTaxRule().getName() : null);
         dto.setHasVariants(i.getHasVariants());
         dto.setTrackInventory(i.getTrackInventory());
         dto.setIsActive(i.getIsActive());

@@ -20,5 +20,9 @@ public class InventoryDto {
     private BigDecimal costPrice;
     private BigDecimal lowStockThreshold;
     private Boolean lowStock;
+    private String batchNo;
+    private LocalDateTime expiryDate;
+    private BigDecimal mrp;
+    private String location;
     private LocalDateTime updatedAt;
 }
