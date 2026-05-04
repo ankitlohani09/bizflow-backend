@@ -61,7 +61,7 @@ public class UserServiceImpl implements UserService {
 
         user = userRepository.save(user);
 
-        assignRoles(user.getId(), request.getRoleIds());
+        assignRoles(tenantId, user.getId(), request.getRoleIds());
 
         return ApiResponse.success(MessageConstant.USER_CREATED, toResponse(user));
     }
@@ -86,7 +86,7 @@ public class UserServiceImpl implements UserService {
 
         // Replace existing roles with new ones
         userRoleRepository.deleteByUserId(user.getId());
-        assignRoles(user.getId(), request.getRoleIds());
+        assignRoles(tenantId, user.getId(), request.getRoleIds());
 
         return ApiResponse.success(MessageConstant.USER_UPDATED, toResponse(user));
     }
@@ -105,14 +105,16 @@ public class UserServiceImpl implements UserService {
     }
 
     // --- Helpers ---
-    private void assignRoles(Long userId, List<Long> roleIds) {
-        List<Role> roles = roleRepository.findAllById(roleIds);
+    private void assignRoles(Long tenantId, Long userId, List<Long> roleIds) {
+        List<Role> roles = roleRepository.findAllById(roleIds).stream()
+                .filter(role -> tenantId.equals(role.getTenantId())).toList();
+
         if (roles.size() != roleIds.size()) {
             throw new ResourceNotFoundException("One or more roles not found");
         }
 
-        List<UserRole> userRoles = roleIds.stream()
-                .map(roleId -> UserRole.builder().userId(userId).roleId(roleId).assignedAt(LocalDateTime.now()).build())
+        List<UserRole> userRoles = roles.stream().map(
+                role -> UserRole.builder().userId(userId).roleId(role.getId()).assignedAt(LocalDateTime.now()).build())
                 .toList();
 
         userRoleRepository.saveAll(userRoles);

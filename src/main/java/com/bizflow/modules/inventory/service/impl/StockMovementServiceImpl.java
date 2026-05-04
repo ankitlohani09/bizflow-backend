@@ -55,11 +55,20 @@ public class StockMovementServiceImpl implements StockMovementService {
         ItemVariant variant = dto.getVariantId() != null
                 ? variantRepository.findByIdAndTenantId(dto.getVariantId(), tenantId).orElse(null) : null;
 
+        // Derive direction from movementType if not provided
+        MovementDirection direction = dto.getDirection();
+        if (direction == null) {
+            direction = switch (dto.getMovementType()) {
+            case PURCHASE, RETURN, TRANSFER, ADJUSTMENT -> MovementDirection.IN;
+            case SALE, DAMAGE, EXPIRED -> MovementDirection.OUT;
+            };
+        }
+
         // Save movement
         StockMovement movement = StockMovement.builder().tenantId(tenantId).item(item).variant(variant)
                 .movementType(dto.getMovementType()).conditionType(dto.getConditionType()).quantity(dto.getQuantity())
-                .direction(dto.getDirection()).referenceType(dto.getReferenceType()).referenceId(dto.getReferenceId())
-                .batchNo(dto.getBatchNo()).expiryDate(dto.getExpiryDate()).notes(dto.getNotes()).build();
+                .direction(direction).batchNo(dto.getBatchNo()).expiryDate(dto.getExpiryDate()).notes(dto.getNotes())
+                .build();
 
         movementRepository.save(movement);
 

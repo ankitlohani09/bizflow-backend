@@ -9,19 +9,19 @@ import com.bizflow.common.exception.ResourceNotFoundException;
 import com.bizflow.modules.billing.dto.InvoiceDto;
 import com.bizflow.modules.billing.dto.InvoiceItemDto;
 import com.bizflow.modules.billing.dto.PaymentDto;
-import com.bizflow.modules.billing.entity.Invoice;
-import com.bizflow.modules.billing.entity.InvoiceItem;
-import com.bizflow.modules.billing.entity.Payment;
-import com.bizflow.modules.billing.entity.PaymentMode;
+import com.bizflow.modules.billing.entity.*;
 import com.bizflow.modules.billing.repository.InvoiceItemRepository;
 import com.bizflow.modules.billing.repository.InvoiceRepository;
 import com.bizflow.modules.billing.repository.PaymentModeRepository;
 import com.bizflow.modules.billing.repository.PaymentRepository;
+import com.bizflow.modules.billing.repository.TaxRuleRepository;
 import com.bizflow.modules.billing.service.InvoiceService;
 import com.bizflow.modules.catalogue.entity.Item;
 import com.bizflow.modules.catalogue.entity.ItemVariant;
 import com.bizflow.modules.catalogue.repository.ItemRepository;
 import com.bizflow.modules.catalogue.repository.ItemVariantRepository;
+import com.bizflow.modules.customer.entity.Customer;
+import com.bizflow.modules.customer.repository.CustomerRepository;
 import com.bizflow.modules.inventory.dto.StockMovementDto;
 import com.bizflow.modules.inventory.service.StockMovementService;
 import com.bizflow.security.SecurityUtils;
@@ -44,8 +44,11 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final ItemVariantRepository variantRepository;
     private final StockMovementService stockMovementService;
     private final PaymentModeRepository paymentModeRepository;
+    private final CustomerRepository customerRepository;
+    private final TaxRuleRepository taxRuleRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public ApiResponse<List<InvoiceDto>> getAll() {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         return ApiResponse.success(
@@ -53,6 +56,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ApiResponse<InvoiceDto> getById(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Invoice invoice = invoiceRepository.findByIdAndTenantId(id, tenantId)
@@ -78,6 +82,20 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .changeAmount(dto.getChangeAmount() != null ? dto.getChangeAmount() : BigDecimal.ZERO)
                 .paymentStatus(dto.getPaymentStatus()).notes(dto.getNotes()).build();
 
+        if (dto.getCustomerId() != null) {
+            Customer customer = customerRepository.findByIdAndTenantId(dto.getCustomerId(), tenantId)
+                    .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
+            invoice.setCustomer(customer);
+
+            // Award Loyalty Points (1% of Grand Total)
+            int points = dto.getGrandTotal().divide(BigDecimal.valueOf(100), 0, BigDecimal.ROUND_FLOOR).intValue();
+            if (points > 0) {
+                customer.setLoyaltyPoints(
+                        (customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0) + points);
+                customerRepository.save(customer);
+            }
+        }
+
         invoice = invoiceRepository.save(invoice);
 
         if (dto.getItems() != null) {
@@ -87,10 +105,13 @@ public class InvoiceServiceImpl implements InvoiceService {
                 ItemVariant variant = itemDto.getVariantId() != null
                         ? variantRepository.findByIdAndTenantId(itemDto.getVariantId(), tenantId).orElse(null) : null;
 
+                TaxRule taxRule = itemDto.getTaxRuleId() != null
+                        ? taxRuleRepository.findByIdAndTenantId(itemDto.getTaxRuleId(), tenantId).orElse(null) : null;
+
                 InvoiceItem invoiceItem = InvoiceItem.builder().tenantId(tenantId).invoice(invoice).item(item)
                         .variant(variant).quantity(itemDto.getQuantity()).unitPrice(itemDto.getUnitPrice())
                         .discountPct(itemDto.getDiscountPct() != null ? itemDto.getDiscountPct() : BigDecimal.ZERO)
-                        .taxRate(itemDto.getTaxRate() != null ? itemDto.getTaxRate() : BigDecimal.ZERO)
+                        .taxRate(itemDto.getTaxRate() != null ? itemDto.getTaxRate() : BigDecimal.ZERO).taxRule(taxRule)
                         .lineTotal(itemDto.getLineTotal()).build();
                 invoiceItemRepository.save(invoiceItem);
 
@@ -156,6 +177,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         dto.setId(i.getId());
         dto.setInvoiceNumber(i.getInvoiceNumber());
         dto.setInvoiceType(i.getInvoiceType());
+        dto.setCustomerId(i.getCustomer() != null ? i.getCustomer().getId() : null);
         dto.setCustomerName(i.getCustomerName());
         dto.setCustomerPhone(i.getCustomerPhone());
         dto.setSubtotal(i.getSubtotal());
@@ -184,6 +206,8 @@ public class InvoiceServiceImpl implements InvoiceService {
         dto.setUnitPrice(ii.getUnitPrice());
         dto.setDiscountPct(ii.getDiscountPct());
         dto.setTaxRate(ii.getTaxRate());
+        dto.setTaxRuleId(ii.getTaxRule() != null ? ii.getTaxRule().getId() : null);
+        dto.setTaxRuleName(ii.getTaxRule() != null ? ii.getTaxRule().getName() : null);
         dto.setLineTotal(ii.getLineTotal());
         return dto;
     }

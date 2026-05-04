@@ -29,7 +29,10 @@ public class MessageConstant {
     public static final String JWT = "JWT";
     public static final String BEARER_AUTHENTICATION = "Bearer Authentication";
     public static final String TOKEN_EXPIRED = "{\"message\": \"Token expired or invalid\"}";
-    public static final String SESSION_EXPIRED = "Session expired";
+    public static final String SESSION_EXPIRED = "Session expired. Please login again.";
+    public static final String ACCESS_DENIED = "Access denied. Insufficient permissions.";
+    public static final String INVALID_TOKEN = "Invalid or tampered token.";
+    public static final String TOKEN_REFRESHED = "Token refreshed successfully";
 
     // Tenant
     public static final String TENANT_NOT_FOUND = "Tenant not found";
@@ -45,6 +48,19 @@ public class MessageConstant {
     public static final String CATEGORY_CREATED = "Category created successfully";
     public static final String CATEGORY_UPDATED = "Category updated successfully";
     public static final String CATEGORY_DELETED = "Category deleted successfully";
+    public static final String CATEGORY_NAME_REQUIRED = "Category name is required";
+    public static final String CATEGORY_ALREADY_EXISTS = "Category already exists";
+    public static final String CATEGORY_PARENT_INVALID = "Invalid parent category";
+    public static final String CATEGORY_HAS_CHILDREN = "Category has child categories and cannot be deleted";
+
+    // Roles
+    public static final String ROLE_NOT_FOUND = "Role not found";
+    public static final String ROLE_CREATED = "Role created successfully";
+    public static final String ROLE_UPDATED = "Role updated successfully";
+    public static final String ROLE_DELETED = "Role deleted successfully";
+    public static final String ROLE_NAME_REQUIRED = "Role name is required";
+    public static final String ROLE_ALREADY_EXISTS = "Role already exists";
+    public static final String ROLE_ASSIGNED_TO_USER = "Role is assigned to one or more users";
 
     // Inventory
     public static final String INVENTORY_NOT_FOUND = "Inventory record not found";

@@ -19,6 +19,8 @@ public class ItemDto {
     private BigDecimal sellingPrice;
     private BigDecimal costPrice;
     private BigDecimal taxRate;
+    private Long taxRuleId;
+    private String taxRuleName;
     private Boolean hasVariants;
     private Boolean trackInventory;
     private Boolean isActive;

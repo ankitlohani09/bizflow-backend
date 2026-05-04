@@ -13,6 +13,7 @@ public class InvoiceDto {
     private Long id;
     private String invoiceNumber;
     private InvoiceType invoiceType;
+    private Long customerId;
     private String customerName;
     private String customerPhone;
     private BigDecimal subtotal;

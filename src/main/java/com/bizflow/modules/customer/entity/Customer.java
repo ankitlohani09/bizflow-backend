@@ -45,6 +45,10 @@ public class Customer extends BaseEntity {
     private BigDecimal openingBalance = BigDecimal.ZERO;
 
     @Builder.Default
+    @Column(name = "loyalty_points")
+    private Integer loyaltyPoints = 0;
+
+    @Builder.Default
     @Column(name = "is_active")
     private Boolean isActive = true;
 }

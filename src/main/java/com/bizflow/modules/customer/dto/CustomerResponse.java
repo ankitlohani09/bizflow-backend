@@ -22,6 +22,7 @@ public class CustomerResponse {
     private String pincode;
     private String gstin;
     private BigDecimal openingBalance;
+    private Integer loyaltyPoints;
     private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

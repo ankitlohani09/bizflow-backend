@@ -2,6 +2,7 @@ package com.bizflow.modules.catalogue.entity;
 
 import com.bizflow.common.BaseEntity;
 import com.bizflow.common.enums.ItemType;
+import com.bizflow.modules.billing.entity.TaxRule;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -47,6 +48,10 @@ public class Item extends BaseEntity {
     @Builder.Default
     @Column(name = "tax_rate", precision = 5, scale = 2)
     private BigDecimal taxRate = BigDecimal.ZERO;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tax_rule_id")
+    private TaxRule taxRule;
 
     @Builder.Default
     @Column(name = "has_variants")
