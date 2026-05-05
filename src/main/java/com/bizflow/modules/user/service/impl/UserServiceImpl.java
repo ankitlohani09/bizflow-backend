@@ -104,6 +104,32 @@ public class UserServiceImpl implements UserService {
         return ApiResponse.success(MessageConstant.USER_DELETED, null);
     }
 
+    @Override
+    @Transactional
+    public ApiResponse<UserResponse> updateProfilePicture(Long id, String imageUrl) {
+        Long tenantId = SecurityUtils.getCurrentTenantId();
+        User user = userRepository.findById(id).filter(u -> u.getTenantId().equals(tenantId))
+                .orElseThrow(() -> new ResourceNotFoundException("User", id));
+
+        // Delete old picture if exists
+        String oldImageUrl = user.getProfilePictureUrl();
+        if (oldImageUrl != null && !oldImageUrl.isBlank()) {
+            try {
+                // Convert URL /uploads/... to filesystem path ./uploads/...
+                java.nio.file.Path oldPath = java.nio.file.Paths.get("." + oldImageUrl);
+                java.nio.file.Files.deleteIfExists(oldPath);
+            } catch (java.io.IOException e) {
+                // Log error but don't fail the update
+                System.err.println("Failed to delete old profile picture: " + e.getMessage());
+            }
+        }
+
+        user.setProfilePictureUrl(imageUrl);
+        user = userRepository.save(user);
+
+        return ApiResponse.success("Profile picture updated", toResponse(user));
+    }
+
     // --- Helpers ---
     private void assignRoles(Long tenantId, Long userId, List<Long> roleIds) {
         List<Role> roles = roleRepository.findAllById(roleIds).stream()
@@ -129,6 +155,7 @@ public class UserServiceImpl implements UserService {
     private UserResponse toResponse(User user) {
         return UserResponse.builder().id(user.getId()).tenantId(user.getTenantId()).name(user.getName())
                 .email(user.getEmail()).phone(user.getPhone()).roles(getRoleNames(user.getId()))
+                .profilePictureUrl(user.getProfilePictureUrl())
                 .isActive(user.getIsActive()).createdAt(user.getCreatedAt()).updatedAt(user.getUpdatedAt()).build();
     }
 }

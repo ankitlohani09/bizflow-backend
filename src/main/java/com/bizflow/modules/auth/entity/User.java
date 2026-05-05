@@ -29,4 +29,7 @@ public class User extends BaseEntity {
 
     @Builder.Default
     private Boolean isActive = true;
+
+    @Column(name = "profile_picture_url")
+    private String profilePictureUrl;
 }

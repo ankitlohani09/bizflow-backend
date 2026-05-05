@@ -53,7 +53,7 @@ public class AuthServiceImpl implements AuthService {
 
         LoginResponse response = LoginResponse.builder().token(accessToken).refreshToken(refreshToken)
                 .userId(user.getId()).tenantId(user.getTenantId()).name(user.getName()).email(user.getEmail())
-                .roles(roles).build();
+                .roles(roles).profilePictureUrl(user.getProfilePictureUrl()).build();
 
         return ApiResponse.success(MessageConstant.LOGIN_SUCCESS, response);
     }
@@ -83,7 +83,8 @@ public class AuthServiceImpl implements AuthService {
         String newAccessToken = jwtService.generateToken(email, userId, tenantId, roles);
 
         LoginResponse response = LoginResponse.builder().token(newAccessToken).refreshToken(token).userId(userId)
-                .tenantId(tenantId).name(user.getName()).email(email).roles(roles).build();
+                .tenantId(tenantId).name(user.getName()).email(email).roles(roles)
+                .profilePictureUrl(user.getProfilePictureUrl()).build();
 
         return ApiResponse.success(MessageConstant.TOKEN_REFRESHED, response);
     }
