@@ -12,11 +12,13 @@ import com.bizflow.modules.catalogue.service.ItemVariantService;
 import com.bizflow.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ItemVariantServiceImpl implements ItemVariantService {
 
     private final ItemVariantRepository variantRepository;
