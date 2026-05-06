@@ -2,6 +2,7 @@ package com.bizflow.modules.tenant.service.impl;
 
 import com.bizflow.common.ApiResponse;
 import com.bizflow.common.constant.MessageConstant;
+import com.bizflow.common.utility.FileStorageService;
 import com.bizflow.modules.tenant.dto.WhiteLabelSettingsDto;
 import com.bizflow.modules.tenant.entity.WhiteLabelSettings;
 import com.bizflow.modules.tenant.repository.WhiteLabelSettingsRepository;
@@ -11,24 +12,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.UUID;
-
 @Service
 @RequiredArgsConstructor
 public class WhiteLabelSettingsServiceImpl implements WhiteLabelSettingsService {
 
     private final WhiteLabelSettingsRepository whiteLabelSettingsRepository;
-    private static final String UPLOAD_DIR = "uploads/branding/";
+    private final FileStorageService fileStorageService;
 
     @Override
     public ApiResponse<WhiteLabelSettingsDto> getCurrentSettings() {
         Long tenantId = SecurityUtils.getCurrentTenantId();
-        WhiteLabelSettings settings = whiteLabelSettingsRepository.findByTenantId(tenantId)
-                .orElse(WhiteLabelSettings.builder().tenantId(tenantId).brandName("BizFlow").primaryColor("#6366f1").build());
+        WhiteLabelSettings settings = whiteLabelSettingsRepository.findByTenantId(tenantId).orElse(
+                WhiteLabelSettings.builder().tenantId(tenantId).brandName("BizFlow").primaryColor("#6366f1").build());
         return ApiResponse.success(toDto(settings));
     }
 
@@ -52,45 +47,25 @@ public class WhiteLabelSettingsServiceImpl implements WhiteLabelSettingsService 
     @Override
     public ApiResponse<WhiteLabelSettingsDto> updateLogo(MultipartFile file) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
-        WhiteLabelSettings settings = whiteLabelSettingsRepository.findByTenantId(tenantId)
-                .orElse(WhiteLabelSettings.builder()
-                        .tenantId(tenantId)
-                        .brandName("BizFlow")
-                        .primaryColor("#6366f1")
-                        .build());
+        WhiteLabelSettings settings = whiteLabelSettingsRepository.findByTenantId(tenantId).orElse(
+                WhiteLabelSettings.builder().tenantId(tenantId).brandName("BizFlow").primaryColor("#6366f1").build());
 
-        try {
-            Path root = Paths.get(UPLOAD_DIR);
-            if (!Files.exists(root)) {
-                Files.createDirectories(root);
-            }
-
-            // Delete old logo if exists
-            if (settings.getLogoUrl() != null && settings.getLogoUrl().startsWith("/uploads/branding/")) {
-                try {
-                    String oldPath = settings.getLogoUrl().substring(1);
-                    Files.deleteIfExists(Paths.get(oldPath));
-                } catch (IOException e) {
-                    // Log and continue
-                }
-            }
-
-            String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            Files.copy(file.getInputStream(), root.resolve(filename));
-            
-            String logoUrl = "/" + UPLOAD_DIR + filename;
-            settings.setLogoUrl(logoUrl);
-            
-            // Ensure we don't save nulls if they were already there
-            if (settings.getBrandName() == null) settings.setBrandName("BizFlow");
-            if (settings.getPrimaryColor() == null) settings.setPrimaryColor("#6366f1");
-
-            WhiteLabelSettings saved = whiteLabelSettingsRepository.save(settings);
-            return ApiResponse.success("Logo uploaded successfully", toDto(saved));
-            
-        } catch (IOException e) {
-            return ApiResponse.error("Failed to store logo: " + e.getMessage());
+        // Delete old logo if exists
+        if (settings.getLogoUrl() != null) {
+            fileStorageService.deleteFile(settings.getLogoUrl());
         }
+
+        String logoUrl = fileStorageService.uploadFile(file, "branding");
+        settings.setLogoUrl(logoUrl);
+
+        // Ensure we don't save nulls if they were already there
+        if (settings.getBrandName() == null)
+            settings.setBrandName("BizFlow");
+        if (settings.getPrimaryColor() == null)
+            settings.setPrimaryColor("#6366f1");
+
+        WhiteLabelSettings saved = whiteLabelSettingsRepository.save(settings);
+        return ApiResponse.success("Logo uploaded successfully", toDto(saved));
     }
 
     private WhiteLabelSettingsDto toDto(WhiteLabelSettings entity) {

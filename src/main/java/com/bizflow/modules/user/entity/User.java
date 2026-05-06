@@ -1,4 +1,4 @@
-package com.bizflow.modules.auth.entity;
+package com.bizflow.modules.user.entity;
 
 import com.bizflow.common.BaseEntity;
 import jakarta.persistence.*;

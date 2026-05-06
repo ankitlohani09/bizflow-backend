@@ -1,6 +1,6 @@
-package com.bizflow.modules.auth.repository;
+package com.bizflow.modules.user.repository;
 
-import com.bizflow.modules.auth.entity.User;
+import com.bizflow.modules.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

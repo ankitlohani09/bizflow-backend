@@ -4,6 +4,7 @@ import com.bizflow.common.ApiResponse;
 import com.bizflow.modules.auth.dto.LoginRequest;
 import com.bizflow.modules.auth.dto.LoginResponse;
 import com.bizflow.modules.auth.dto.RefreshTokenRequest;
+import com.bizflow.modules.auth.dto.ResetPasswordRequest;
 import com.bizflow.modules.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,5 +39,17 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout() {
         return ResponseEntity.ok(ApiResponse.success("Logged out successfully", null));
+    }
+
+    @Operation(summary = "Forgot password", description = "Sends reset instructions to email")
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<String>> forgotPassword(@RequestParam String email) {
+        return ResponseEntity.ok(authService.forgotPassword(email));
+    }
+
+    @Operation(summary = "Reset password", description = "Updates password using reset token")
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        return ResponseEntity.ok(authService.resetPassword(request.getToken(), request.getNewPassword()));
     }
 }

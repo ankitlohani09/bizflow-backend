@@ -1,6 +1,7 @@
 package com.bizflow.modules.user.controller;
 
 import com.bizflow.common.ApiResponse;
+import com.bizflow.common.utility.FileStorageService;
 import com.bizflow.modules.user.dto.UserRequest;
 import com.bizflow.modules.user.dto.UserResponse;
 import com.bizflow.modules.user.service.UserService;
@@ -13,12 +14,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.web.multipart.MultipartFile;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+
 import java.util.List;
-import java.util.UUID;
 
 @Tag(name = "Users", description = "User management operations")
 @RestController
@@ -28,33 +25,19 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final FileStorageService fileStorageService;
 
     @Operation(summary = "Upload profile picture")
     @PostMapping("/{id}/profile-picture")
-    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER') or #id == authentication.principal.userId") 
-    public ResponseEntity<ApiResponse<UserResponse>> uploadProfilePicture(
-            @PathVariable Long id,
-            @RequestParam("file") MultipartFile file) throws IOException {
-        
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER') or #id == authentication.principal.userId")
+    public ResponseEntity<ApiResponse<UserResponse>> uploadProfilePicture(@PathVariable Long id,
+            @RequestParam("file") MultipartFile file) {
+
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(ApiResponse.error("File is empty"));
         }
 
-        // Create uploads directory if not exists
-        Path uploadPath = Paths.get("./uploads/profile-pics");
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-        }
-
-        // Generate unique filename
-        String filename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-        Path filePath = uploadPath.resolve(filename);
-        
-        // Save file
-        Files.copy(file.getInputStream(), filePath);
-
-        // Return relative URL for frontend
-        String imageUrl = "/uploads/profile-pics/" + filename;
+        String imageUrl = fileStorageService.uploadFile(file, "profile-pics");
         return ResponseEntity.ok(userService.updateProfilePicture(id, imageUrl));
     }
 

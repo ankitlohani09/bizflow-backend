@@ -1,4 +1,4 @@
-package com.bizflow.modules.auth.dto;
+package com.bizflow.modules.role.dto;
 
 import lombok.Builder;
 import lombok.Data;

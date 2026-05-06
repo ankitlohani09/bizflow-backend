@@ -1,29 +1,27 @@
-package com.bizflow.modules.auth.entity;
+package com.bizflow.modules.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "roles")
+@Table(name = "user_roles")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Role {
+public class UserRole {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private Long tenantId;
+    private Long userId;
 
     @Column(nullable = false)
-    private String name;
+    private Long roleId;
 
-    private String description;
-
-    private LocalDateTime createdAt;
+    private LocalDateTime assignedAt;
 }

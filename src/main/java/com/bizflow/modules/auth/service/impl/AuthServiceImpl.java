@@ -6,18 +6,23 @@ import com.bizflow.common.exception.BusinessException;
 import com.bizflow.modules.auth.dto.LoginRequest;
 import com.bizflow.modules.auth.dto.LoginResponse;
 import com.bizflow.modules.auth.dto.RefreshTokenRequest;
-import com.bizflow.modules.auth.entity.User;
-import com.bizflow.modules.auth.repository.UserRepository;
-import com.bizflow.modules.auth.repository.UserRoleRepository;
+import com.bizflow.modules.user.entity.User;
+import com.bizflow.modules.user.repository.UserRepository;
+import com.bizflow.modules.user.repository.UserRoleRepository;
+import com.bizflow.modules.auth.repository.PasswordResetTokenRepository;
+import com.bizflow.modules.auth.entity.PasswordResetToken;
+import com.bizflow.modules.email.service.EmailService;
 import com.bizflow.modules.auth.service.AuthService;
 import com.bizflow.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -25,12 +30,14 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
+    private final PasswordResetTokenRepository tokenRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     @Override
     public ApiResponse<LoginResponse> login(LoginRequest request) {
-
+        // ... (existing implementation)
         User user;
         if (request.getTenantId() != null) {
             user = userRepository.findByEmailAndTenantId(request.getEmail(), request.getTenantId()).orElseThrow(
@@ -60,6 +67,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ApiResponse<LoginResponse> refreshToken(RefreshTokenRequest request) {
+        // ... (existing implementation)
         String token = request.getRefreshToken();
 
         if (jwtService.isTokenExpired(token))
@@ -87,5 +95,47 @@ public class AuthServiceImpl implements AuthService {
                 .profilePictureUrl(user.getProfilePictureUrl()).build();
 
         return ApiResponse.success(MessageConstant.TOKEN_REFRESHED, response);
+    }
+
+    @Override
+    @Transactional
+    public ApiResponse<String> forgotPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException("User not found with this email", HttpStatus.NOT_FOUND));
+
+        // Delete old tokens
+        tokenRepository.deleteByUser(user);
+
+        // Generate new token
+        String token = UUID.randomUUID().toString();
+        PasswordResetToken resetToken = PasswordResetToken.builder().token(token).user(user)
+                .expiryDate(LocalDateTime.now().plusHours(24)).build();
+
+        tokenRepository.save(resetToken);
+
+        // Send email
+        emailService.sendPasswordResetEmail(email, token);
+
+        return ApiResponse.success("Password reset instructions sent to your email", null);
+    }
+
+    @Override
+    @Transactional
+    public ApiResponse<String> resetPassword(String token, String newPassword) {
+        PasswordResetToken resetToken = tokenRepository.findByToken(token)
+                .orElseThrow(() -> new BusinessException("Invalid reset token", HttpStatus.BAD_REQUEST));
+
+        if (resetToken.isExpired()) {
+            tokenRepository.delete(resetToken);
+            throw new BusinessException("Reset token has expired", HttpStatus.BAD_REQUEST);
+        }
+
+        User user = resetToken.getUser();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        tokenRepository.delete(resetToken);
+
+        return ApiResponse.success("Password reset successful. You can now login.", null);
     }
 }

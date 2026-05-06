@@ -13,6 +13,9 @@ public class TenantRequest {
     @NotBlank(message = "Code is required")
     private String code;
 
+    @NotBlank(message = "Owner name is required")
+    private String ownerName;
+
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     private String email;

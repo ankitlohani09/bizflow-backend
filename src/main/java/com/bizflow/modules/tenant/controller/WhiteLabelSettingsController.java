@@ -39,8 +39,7 @@ public class WhiteLabelSettingsController {
 
     @Operation(summary = "Upload company logo")
     @PostMapping("/logo")
-    public ResponseEntity<ApiResponse<WhiteLabelSettingsDto>> updateLogo(
-            @RequestParam("file") MultipartFile file) {
+    public ResponseEntity<ApiResponse<WhiteLabelSettingsDto>> updateLogo(@RequestParam("file") MultipartFile file) {
         return ResponseEntity.ok(whiteLabelSettingsService.updateLogo(file));
     }
 }
