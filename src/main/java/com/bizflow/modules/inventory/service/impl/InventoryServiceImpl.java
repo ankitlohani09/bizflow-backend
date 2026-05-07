@@ -55,6 +55,10 @@ public class InventoryServiceImpl implements InventoryService {
         dto.setId(i.getId());
         dto.setItemId(i.getItem().getId());
         dto.setItemName(i.getItem().getName());
+        dto.setType(i.getItem().getType());
+        dto.setName(i.getItem().getName());
+        dto.setBarcode(i.getItem().getBarcode());
+        dto.setCategoryName(i.getItem().getCategory() != null ? i.getItem().getCategory().getName() : null);
         dto.setVariantId(i.getVariant() != null ? i.getVariant().getId() : null);
         dto.setVariantName(i.getVariant() != null ? i.getVariant().getVariantName() : null);
         dto.setAvailableQty(i.getAvailableQty());
@@ -87,10 +91,19 @@ public class InventoryServiceImpl implements InventoryService {
 
         List<Item> missingItems = items.stream().filter(item -> !existingItemIds.contains(item.getId())).toList();
 
-        for (Item item : missingItems) {
-            Inventory inv = Inventory.builder().item(item).availableQty(BigDecimal.ZERO).damagedQty(BigDecimal.ZERO)
-                    .expiredQty(BigDecimal.ZERO).reservedQty(BigDecimal.ZERO).tenantId(tenantId).build();
-            inventoryRepository.save(inv);
+        List<Inventory> newInventories = missingItems.stream().map(item -> 
+            Inventory.builder()
+                .item(item)
+                .availableQty(BigDecimal.ZERO)
+                .damagedQty(BigDecimal.ZERO)
+                .expiredQty(BigDecimal.ZERO)
+                .reservedQty(BigDecimal.ZERO)
+                .tenantId(tenantId)
+                .build()
+        ).toList();
+
+        if (!newInventories.isEmpty()) {
+            inventoryRepository.saveAll(newInventories);
         }
 
         return ApiResponse.success("Synchronized " + missingItems.size() + " items.");

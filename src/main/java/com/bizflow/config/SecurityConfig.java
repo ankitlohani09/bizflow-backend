@@ -35,7 +35,8 @@ public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
     private final ObjectMapper objectMapper;
 
-    private static final String[] PUBLIC_URLS = { "/auth/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html" };
+    private static final String[] PUBLIC_URLS = { "/auth/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
+            "/uploads/**", "/public/**", "/biometric/**" };
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -147,6 +148,7 @@ public class SecurityConfig {
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
+        config.setExposedHeaders(List.of("Authorization"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;

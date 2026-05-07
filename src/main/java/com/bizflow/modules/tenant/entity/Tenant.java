@@ -3,11 +3,12 @@ package com.bizflow.modules.tenant.entity;
 import com.bizflow.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "tenants")
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
@@ -29,4 +30,10 @@ public class Tenant extends BaseEntity {
     @Builder.Default
     @Column(nullable = false)
     private Boolean isActive = true;
+
+    @Builder.Default
+    private Boolean isGpsMandatory = false;
+
+    @Builder.Default
+    private Boolean isSelfieMandatory = false;
 }

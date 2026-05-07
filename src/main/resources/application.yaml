@@ -21,8 +21,21 @@ spring:
     baseline-on-migrate: true
     locations: classpath:db/migration
 
+  mail:
+    host: mail.thinkai.in
+    port: 465
+    username: onboarding.pos@think-ai.in
+    password: "3d2D+B#{*Ge!"
+    protocol: smtp
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.ssl.enable: true
+      mail.smtp.ssl.trust: mail.thinkai.in
+      mail.smtp.starttls.enable: false
+
 server:
   port: 8080
+  address: 0.0.0.0
   servlet:
     context-path: /api/v1
 
@@ -42,3 +55,11 @@ logging:
     com.bizflow: DEBUG
     org.springframework.security: DEBUG
     org.hibernate.SQL: INFO
+
+# Storage Configuration
+storage:
+  type: local # change to 'azure' for cloud storage
+
+# Azure/Cloud Settings (Used if storage.type is 'azure')
+AWS_CONNECTION_STRING: ${AWS_CONNECTION_STRING:}
+AWS_CONTAINER_NAME: ${AWS_CONTAINER_NAME:}

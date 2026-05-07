@@ -16,4 +16,6 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     Optional<Inventory> findByItemIdAndVariantIdAndTenantId(Long itemId, Long variantId, Long tenantId);
 
     Optional<Inventory> findByItemIdAndVariantIsNullAndTenantId(Long itemId, Long tenantId);
+
+    List<Inventory> findAllByItemIdAndTenantId(Long itemId, Long tenantId);
 }

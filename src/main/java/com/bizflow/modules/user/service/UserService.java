@@ -17,4 +17,6 @@ public interface UserService {
     ApiResponse<UserResponse> updateUser(Long id, UserRequest request);
 
     ApiResponse<Void> deleteUser(Long id);
+
+    ApiResponse<UserResponse> updateProfilePicture(Long id, String imageUrl);
 }

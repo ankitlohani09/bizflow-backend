@@ -1,4 +1,4 @@
-package com.bizflow.modules.auth.entity;
+package com.bizflow.modules.user.entity;
 
 import com.bizflow.common.BaseEntity;
 import jakarta.persistence.*;
@@ -29,4 +29,7 @@ public class User extends BaseEntity {
 
     @Builder.Default
     private Boolean isActive = true;
+
+    @Column(name = "profile_picture_url")
+    private String profilePictureUrl;
 }

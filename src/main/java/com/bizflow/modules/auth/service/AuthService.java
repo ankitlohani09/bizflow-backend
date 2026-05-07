@@ -9,4 +9,8 @@ public interface AuthService {
     ApiResponse<LoginResponse> login(LoginRequest request);
 
     ApiResponse<LoginResponse> refreshToken(RefreshTokenRequest request);
+
+    ApiResponse<String> forgotPassword(String email);
+
+    ApiResponse<String> resetPassword(String token, String newPassword);
 }

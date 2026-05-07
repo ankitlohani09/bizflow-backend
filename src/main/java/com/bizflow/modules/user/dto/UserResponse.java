@@ -21,6 +21,7 @@ public class UserResponse {
     private String phone;
     private List<String> roles;
     private Boolean isActive;
+    private String profilePictureUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

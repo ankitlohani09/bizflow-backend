@@ -37,7 +37,7 @@ public class StaffServiceImpl implements StaffService {
     public ApiResponse<StaffDto> create(StaffDto dto) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Staff staff = Staff.builder().tenantId(tenantId).name(dto.getName()).phone(dto.getPhone()).email(dto.getEmail())
-                .role(dto.getRole()).salary(dto.getSalary()).joinDate(dto.getJoinDate())
+                .role(dto.getRole()).salary(dto.getSalary()).joinDate(dto.getJoinDate()).pin(dto.getPin())
                 .isActive(dto.getIsActive() != null ? dto.getIsActive() : true).build();
         return ApiResponse.success(MessageConstant.CREATED, toDto(staffRepository.save(staff)));
     }
@@ -53,6 +53,7 @@ public class StaffServiceImpl implements StaffService {
         staff.setRole(dto.getRole());
         staff.setSalary(dto.getSalary());
         staff.setJoinDate(dto.getJoinDate());
+        staff.setPin(dto.getPin());
         staff.setIsActive(dto.getIsActive());
         return ApiResponse.success(MessageConstant.UPDATED, toDto(staffRepository.save(staff)));
     }
@@ -76,6 +77,7 @@ public class StaffServiceImpl implements StaffService {
         dto.setRole(s.getRole());
         dto.setSalary(s.getSalary());
         dto.setJoinDate(s.getJoinDate());
+        dto.setPin(s.getPin());
         dto.setIsActive(s.getIsActive());
         return dto;
     }

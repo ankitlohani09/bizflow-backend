@@ -4,14 +4,18 @@ import com.bizflow.common.ApiResponse;
 import com.bizflow.common.constant.MessageConstant;
 import com.bizflow.common.exception.BusinessException;
 import com.bizflow.common.exception.ResourceNotFoundException;
-import com.bizflow.modules.auth.entity.Role;
-import com.bizflow.modules.auth.entity.User;
-import com.bizflow.modules.auth.entity.UserRole;
-import com.bizflow.modules.auth.repository.RoleRepository;
-import com.bizflow.modules.auth.repository.UserRepository;
-import com.bizflow.modules.auth.repository.UserRoleRepository;
+import com.bizflow.common.utility.FileStorageService;
+import com.bizflow.modules.role.entity.Role;
+import com.bizflow.modules.user.entity.User;
+import com.bizflow.modules.user.entity.UserRole;
+import com.bizflow.modules.role.repository.RoleRepository;
+import com.bizflow.modules.user.repository.UserRepository;
+import com.bizflow.modules.user.repository.UserRoleRepository;
 import com.bizflow.modules.user.dto.UserRequest;
 import com.bizflow.modules.user.dto.UserResponse;
+import com.bizflow.modules.auth.repository.PasswordResetTokenRepository;
+import com.bizflow.modules.email.service.EmailService;
+import com.bizflow.modules.tenant.repository.TenantRepository;
 import com.bizflow.modules.user.service.UserService;
 import com.bizflow.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +33,11 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
+    private final TenantRepository tenantRepository;
+    private final PasswordResetTokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
+    private final FileStorageService fileStorageService;
+    private final EmailService emailService;
 
     @Override
     public ApiResponse<List<UserResponse>> getAllUsers() {
@@ -55,15 +63,43 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(MessageConstant.EMAIL_ALREADY_EXISTS);
         }
 
+        // If password is not provided, generate a random one as a placeholder
+        String password = (request.getPassword() != null && !request.getPassword().isBlank()) ? request.getPassword()
+                : java.util.UUID.randomUUID().toString();
+
         User user = User.builder().tenantId(tenantId).name(request.getName()).email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword())).phone(request.getPhone())
-                .isActive(request.getIsActive()).build();
+                .password(passwordEncoder.encode(password)).phone(request.getPhone()).isActive(request.getIsActive())
+                .build();
 
         user = userRepository.save(user);
 
         assignRoles(tenantId, user.getId(), request.getRoleIds());
 
-        return ApiResponse.success(MessageConstant.USER_CREATED, toResponse(user));
+        // Generate onboarding/reset token
+        String token = java.util.UUID.randomUUID().toString();
+        com.bizflow.modules.auth.entity.PasswordResetToken resetToken = com.bizflow.modules.auth.entity.PasswordResetToken
+                .builder().token(token).user(user).expiryDate(java.time.LocalDateTime.now().plusDays(7)) // Onboarding
+                                                                                                         // link valid
+                                                                                                         // for 7 days
+                .build();
+        tokenRepository.save(resetToken);
+
+        // Fetch Tenant Name for the email
+        String companyName = "BizFlow";
+        try {
+            // We'll need TenantRepository to get the actual company name
+            // For now, using "BizFlow" or fetching it if repository is available
+            companyName = tenantRepository.findById(tenantId).map(t -> t.getName()).orElse("BizFlow");
+        } catch (Exception e) {
+            // Fallback to BizFlow
+        }
+
+        // Send Onboarding Email with "Set Password" link
+        // We use the reset password email template which already has the link logic
+        emailService.sendOnboardingEmail(user.getEmail(), companyName);
+        emailService.sendPasswordResetEmail(user.getEmail(), token);
+
+        return ApiResponse.success("User created and onboarding email sent", toResponse(user));
     }
 
     @Override
@@ -104,6 +140,25 @@ public class UserServiceImpl implements UserService {
         return ApiResponse.success(MessageConstant.USER_DELETED, null);
     }
 
+    @Override
+    @Transactional
+    public ApiResponse<UserResponse> updateProfilePicture(Long id, String imageUrl) {
+        Long tenantId = SecurityUtils.getCurrentTenantId();
+        User user = userRepository.findById(id).filter(u -> u.getTenantId().equals(tenantId))
+                .orElseThrow(() -> new ResourceNotFoundException("User", id));
+
+        // Delete old picture if exists
+        String oldImageUrl = user.getProfilePictureUrl();
+        if (oldImageUrl != null && !oldImageUrl.isBlank()) {
+            fileStorageService.deleteFile(oldImageUrl);
+        }
+
+        user.setProfilePictureUrl(imageUrl);
+        user = userRepository.save(user);
+
+        return ApiResponse.success("Profile picture updated", toResponse(user));
+    }
+
     // --- Helpers ---
     private void assignRoles(Long tenantId, Long userId, List<Long> roleIds) {
         List<Role> roles = roleRepository.findAllById(roleIds).stream()
@@ -129,6 +184,7 @@ public class UserServiceImpl implements UserService {
     private UserResponse toResponse(User user) {
         return UserResponse.builder().id(user.getId()).tenantId(user.getTenantId()).name(user.getName())
                 .email(user.getEmail()).phone(user.getPhone()).roles(getRoleNames(user.getId()))
-                .isActive(user.getIsActive()).createdAt(user.getCreatedAt()).updatedAt(user.getUpdatedAt()).build();
+                .profilePictureUrl(user.getProfilePictureUrl()).isActive(user.getIsActive())
+                .createdAt(user.getCreatedAt()).updatedAt(user.getUpdatedAt()).build();
     }
 }

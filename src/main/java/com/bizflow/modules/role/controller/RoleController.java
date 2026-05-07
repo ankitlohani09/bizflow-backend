@@ -1,9 +1,9 @@
-package com.bizflow.modules.auth.controller;
+package com.bizflow.modules.role.controller;
 
 import com.bizflow.common.ApiResponse;
-import com.bizflow.modules.auth.dto.RoleRequest;
-import com.bizflow.modules.auth.dto.RoleResponse;
-import com.bizflow.modules.auth.service.RoleService;
+import com.bizflow.modules.role.dto.RoleRequest;
+import com.bizflow.modules.role.dto.RoleResponse;
+import com.bizflow.modules.role.service.RoleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

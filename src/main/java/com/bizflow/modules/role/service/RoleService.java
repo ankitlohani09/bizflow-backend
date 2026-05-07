@@ -1,8 +1,8 @@
-package com.bizflow.modules.auth.service;
+package com.bizflow.modules.role.service;
 
 import com.bizflow.common.ApiResponse;
-import com.bizflow.modules.auth.dto.RoleRequest;
-import com.bizflow.modules.auth.dto.RoleResponse;
+import com.bizflow.modules.role.dto.RoleRequest;
+import com.bizflow.modules.role.dto.RoleResponse;
 
 import java.util.List;
 

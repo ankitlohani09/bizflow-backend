@@ -55,10 +55,10 @@ public class ItemServiceImpl implements ItemService {
         item.setTenantId(tenantId);
         Item savedItem = itemRepository.save(item);
 
-        // Initialize Inventory record for the new item
+        // Initialize Inventory record for the new item with initial batch/expiry if provided
         Inventory inventory = Inventory.builder().item(savedItem).availableQty(BigDecimal.ZERO)
-                .damagedQty(BigDecimal.ZERO).expiredQty(BigDecimal.ZERO).reservedQty(BigDecimal.ZERO).tenantId(tenantId)
-                .build();
+                .damagedQty(BigDecimal.ZERO).expiredQty(BigDecimal.ZERO).reservedQty(BigDecimal.ZERO)
+                .batchNo(dto.getBatchNo()).expiryDate(dto.getExpiryDate()).tenantId(tenantId).build();
         inventoryRepository.save(inventory);
 
         return ApiResponse.success(MessageConstant.ITEM_CREATED, toDto(savedItem));
@@ -70,7 +70,18 @@ public class ItemServiceImpl implements ItemService {
         Item item = itemRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.ITEM_NOT_FOUND));
         buildItem(item, dto, tenantId);
-        return ApiResponse.success(MessageConstant.ITEM_UPDATED, toDto(itemRepository.save(item)));
+        Item savedItem = itemRepository.save(item);
+
+        // Sync batch/expiry to inventory if provided
+        List<Inventory> invs = inventoryRepository.findAllByItemIdAndTenantId(savedItem.getId(), tenantId);
+        if (!invs.isEmpty()) {
+            Inventory primary = invs.get(0);
+            primary.setBatchNo(dto.getBatchNo());
+            primary.setExpiryDate(dto.getExpiryDate());
+            inventoryRepository.save(primary);
+        }
+
+        return ApiResponse.success(MessageConstant.ITEM_UPDATED, toDto(savedItem));
     }
 
     @Override
@@ -124,6 +135,17 @@ public class ItemServiceImpl implements ItemService {
         dto.setHasVariants(i.getHasVariants());
         dto.setTrackInventory(i.getTrackInventory());
         dto.setIsActive(i.getIsActive());
+
+        // Note: Initial batch/expiry might be linked to the default inventory record
+        // In a real multi-batch system, we'd fetch the primary inventory record here
+        List<Inventory> invs = inventoryRepository.findAllByItemIdAndTenantId(i.getId(),
+                SecurityUtils.getCurrentTenantId());
+        if (!invs.isEmpty()) {
+            Inventory primary = invs.get(0);
+            dto.setBatchNo(primary.getBatchNo());
+            dto.setExpiryDate(primary.getExpiryDate());
+        }
+
         return dto;
     }
 }

@@ -37,4 +37,10 @@ public class Attendance extends BaseEntity {
 
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
+
+    @Column(name = "photo_url")
+    private String photoUrl;
+
+    @Column(name = "location")
+    private String location;
 }

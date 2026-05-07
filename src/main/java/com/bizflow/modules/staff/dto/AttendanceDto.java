@@ -16,4 +16,6 @@ public class AttendanceDto {
     private LocalTime checkIn;
     private LocalTime checkOut;
     private String notes;
+    private String photoUrl;
+    private String location;
 }

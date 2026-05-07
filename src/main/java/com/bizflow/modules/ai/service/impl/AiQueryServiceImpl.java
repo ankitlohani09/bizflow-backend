@@ -50,7 +50,24 @@ public class AiQueryServiceImpl implements AiQueryService {
 
     @Override
     public ApiResponse<AiQueryResponse> query(AiQueryRequest request) {
-        AiQueryType type = request.getType() == null ? AiQueryType.GENERAL : request.getType();
+        String q = request.getQuery() == null ? "" : request.getQuery().toLowerCase();
+        AiQueryType type = request.getType();
+
+        if (type == null || type == AiQueryType.GENERAL) {
+            if (q.contains("sale") || q.contains("revenue") || q.contains("profit") || q.contains("performance")) {
+                type = AiQueryType.SALES;
+            } else if (q.contains("stock") || q.contains("product") || q.contains("inventory") || q.contains("item")) {
+                type = AiQueryType.INVENTORY;
+            } else if (q.contains("expense") || q.contains("spent") || q.contains("cost") || q.contains("bill")) {
+                type = AiQueryType.EXPENSE;
+            } else if (q.contains("staff") || q.contains("employee") || q.contains("attendance")
+                    || q.contains("salary")) {
+                type = AiQueryType.STAFF;
+            } else {
+                type = AiQueryType.GENERAL;
+            }
+        }
+
         DateRange range = resolveRange(request.getFromDate(), request.getToDate());
         Long tenantId = SecurityUtils.getCurrentTenantId();
 

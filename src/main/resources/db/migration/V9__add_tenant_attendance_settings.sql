@@ -1,0 +1,3 @@
+ALTER TABLE tenants 
+ADD COLUMN is_gps_mandatory BOOLEAN DEFAULT FALSE,
+ADD COLUMN is_selfie_mandatory BOOLEAN DEFAULT FALSE;

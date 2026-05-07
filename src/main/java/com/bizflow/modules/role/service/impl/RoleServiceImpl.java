@@ -1,15 +1,15 @@
-package com.bizflow.modules.auth.service.impl;
+package com.bizflow.modules.role.service.impl;
 
 import com.bizflow.common.ApiResponse;
 import com.bizflow.common.constant.MessageConstant;
 import com.bizflow.common.exception.BusinessException;
 import com.bizflow.common.exception.ResourceNotFoundException;
-import com.bizflow.modules.auth.dto.RoleRequest;
-import com.bizflow.modules.auth.dto.RoleResponse;
-import com.bizflow.modules.auth.entity.Role;
-import com.bizflow.modules.auth.repository.RoleRepository;
-import com.bizflow.modules.auth.repository.UserRoleRepository;
-import com.bizflow.modules.auth.service.RoleService;
+import com.bizflow.modules.role.dto.RoleRequest;
+import com.bizflow.modules.role.dto.RoleResponse;
+import com.bizflow.modules.role.entity.Role;
+import com.bizflow.modules.role.repository.RoleRepository;
+import com.bizflow.modules.user.repository.UserRoleRepository;
+import com.bizflow.modules.role.service.RoleService;
 import com.bizflow.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

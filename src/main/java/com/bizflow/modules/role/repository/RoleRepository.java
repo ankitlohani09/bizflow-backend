@@ -1,6 +1,6 @@
-package com.bizflow.modules.auth.repository;
+package com.bizflow.modules.role.repository;
 
-import com.bizflow.modules.auth.entity.Role;
+import com.bizflow.modules.role.entity.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;

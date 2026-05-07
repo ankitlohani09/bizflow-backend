@@ -1,11 +1,11 @@
 package com.bizflow;
 
-import com.bizflow.modules.auth.entity.Role;
-import com.bizflow.modules.auth.entity.User;
-import com.bizflow.modules.auth.entity.UserRole;
-import com.bizflow.modules.auth.repository.RoleRepository;
-import com.bizflow.modules.auth.repository.UserRepository;
-import com.bizflow.modules.auth.repository.UserRoleRepository;
+import com.bizflow.modules.role.entity.Role;
+import com.bizflow.modules.user.entity.User;
+import com.bizflow.modules.user.entity.UserRole;
+import com.bizflow.modules.role.repository.RoleRepository;
+import com.bizflow.modules.user.repository.UserRepository;
+import com.bizflow.modules.user.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
