@@ -54,4 +54,28 @@ public class LocalStorageServiceImpl implements FileStorageService {
             return false;
         }
     }
+
+    @Override
+    public String uploadBase64(String base64Data, String folder, String filename) {
+        try {
+            if (base64Data == null || !base64Data.contains(",")) {
+                return null;
+            }
+            String base64Image = base64Data.split(",")[1];
+            byte[] imageBytes = java.util.Base64.getDecoder().decode(base64Image);
+
+            Path root = Paths.get(UPLOAD_DIR + folder);
+            if (!Files.exists(root)) {
+                Files.createDirectories(root);
+            }
+
+            String finalFilename = UUID.randomUUID() + "_" + filename;
+            Files.write(root.resolve(finalFilename), imageBytes);
+
+            return "/" + UPLOAD_DIR + folder + "/" + finalFilename;
+        } catch (IOException e) {
+            log.error("Failed to store base64 file locally", e);
+            throw new RuntimeException("Failed to store base64 file locally: " + e.getMessage());
+        }
+    }
 }

@@ -111,4 +111,36 @@ public class AzureStorageServiceImpl implements FileStorageService {
 
         return containerClient.getBlobClient(blobName);
     }
+
+    @Override
+    public String uploadBase64(String base64Data, String folder, String filename) {
+        try {
+            if (base64Data == null || !base64Data.contains(",")) {
+                return null;
+            }
+            String base64Image = base64Data.split(",")[1];
+            byte[] imageBytes = java.util.Base64.getDecoder().decode(base64Image);
+
+            String fileName = "bf_" + folder + "_" + UUID.randomUUID() + "-" + filename;
+            BlobClient blobClient = getBlobClient(fileName);
+
+            try (java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(imageBytes)) {
+                blobClient.upload(bais, imageBytes.length, true);
+            }
+
+            BlobHttpHeaders headers = new BlobHttpHeaders().setContentType("image/jpeg")
+                    .setContentDisposition("inline");
+            blobClient.setHttpHeaders(headers);
+
+            BlobSasPermission permissions = new BlobSasPermission().setReadPermission(true);
+            BlobServiceSasSignatureValues sasValues = new BlobServiceSasSignatureValues(
+                    OffsetDateTime.now().plusYears(1), permissions);
+
+            return blobClient.getBlobUrl() + "?" + blobClient.generateSas(sasValues);
+
+        } catch (Exception e) {
+            log.error("Failed to upload base64 file to Azure: {}", filename, e);
+            throw new RuntimeException("Failed to upload file: " + e.getMessage());
+        }
+    }
 }

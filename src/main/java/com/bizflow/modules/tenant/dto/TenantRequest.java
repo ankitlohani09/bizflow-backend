@@ -24,4 +24,6 @@ public class TenantRequest {
     private String address;
     private String businessType;
     private Boolean isActive = true;
+    private Boolean isGpsMandatory = false;
+    private Boolean isSelfieMandatory = false;
 }

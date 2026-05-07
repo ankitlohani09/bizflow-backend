@@ -132,7 +132,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         if (dto.getPayments() != null) {
             for (PaymentDto payDto : dto.getPayments()) {
                 PaymentMode paymentMode = paymentModeRepository.findByIdAndTenantId(payDto.getPaymentModeId(), tenantId)
-                        .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
+                        .orElseThrow(() -> new ResourceNotFoundException("Payment mode " + MessageConstant.NOT_FOUND));
                 Payment payment = Payment.builder().tenantId(tenantId).invoice(invoice).paymentMode(paymentMode)
                         .amount(payDto.getAmount()).referenceNo(payDto.getReferenceNo()).paidAt(LocalDateTime.now())
                         .build();

@@ -8,4 +8,6 @@ public interface FileStorageService {
     String getFileUrl(String fileNameOrUrl);
 
     boolean deleteFile(String fileUrl);
+
+    String uploadBase64(String base64Data, String folder, String filename);
 }

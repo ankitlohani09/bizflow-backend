@@ -18,6 +18,8 @@ public class TenantResponse {
     private String address;
     private String businessType;
     private Boolean isActive;
+    private Boolean isGpsMandatory;
+    private Boolean isSelfieMandatory;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

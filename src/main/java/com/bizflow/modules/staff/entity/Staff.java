@@ -32,6 +32,9 @@ public class Staff extends BaseEntity {
     @Column(name = "salary", precision = 12, scale = 2)
     private BigDecimal salary;
 
+    @Column(name = "pin", length = 4)
+    private String pin;
+
     @Column(name = "join_date")
     private LocalDate joinDate;
 

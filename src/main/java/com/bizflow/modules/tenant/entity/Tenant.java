@@ -30,4 +30,10 @@ public class Tenant extends BaseEntity {
     @Builder.Default
     @Column(nullable = false)
     private Boolean isActive = true;
+
+    @Builder.Default
+    private Boolean isGpsMandatory = false;
+
+    @Builder.Default
+    private Boolean isSelfieMandatory = false;
 }

@@ -64,7 +64,8 @@ public class TenantServiceImpl implements TenantService {
         // 1. Save Tenant
         Tenant tenant = Tenant.builder().tenantId(1L).name(request.getName()).code(request.getCode().toUpperCase())
                 .email(request.getEmail()).phone(request.getPhone()).address(request.getAddress())
-                .businessType(request.getBusinessType()).isActive(request.getIsActive()).build();
+                .businessType(request.getBusinessType()).isActive(request.getIsActive())
+                .isGpsMandatory(request.getIsGpsMandatory()).isSelfieMandatory(request.getIsSelfieMandatory()).build();
 
         tenant = tenantRepository.save(tenant);
         Long tenantId = tenant.getId();
@@ -117,6 +118,8 @@ public class TenantServiceImpl implements TenantService {
         tenant.setAddress(request.getAddress());
         tenant.setBusinessType(request.getBusinessType());
         tenant.setIsActive(request.getIsActive());
+        tenant.setIsGpsMandatory(request.getIsGpsMandatory());
+        tenant.setIsSelfieMandatory(request.getIsSelfieMandatory());
 
         return ApiResponse.success("Tenant updated successfully", toResponse(tenantRepository.save(tenant)));
     }
@@ -132,6 +135,7 @@ public class TenantServiceImpl implements TenantService {
     private TenantResponse toResponse(Tenant t) {
         return TenantResponse.builder().id(t.getId()).name(t.getName()).code(t.getCode()).email(t.getEmail())
                 .phone(t.getPhone()).address(t.getAddress()).businessType(t.getBusinessType()).isActive(t.getIsActive())
+                .isGpsMandatory(t.getIsGpsMandatory()).isSelfieMandatory(t.getIsSelfieMandatory())
                 .createdAt(t.getCreatedAt()).updatedAt(t.getUpdatedAt()).build();
     }
 }

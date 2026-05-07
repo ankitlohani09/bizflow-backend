@@ -12,6 +12,8 @@ import com.bizflow.modules.user.repository.UserRoleRepository;
 import com.bizflow.modules.auth.repository.PasswordResetTokenRepository;
 import com.bizflow.modules.auth.entity.PasswordResetToken;
 import com.bizflow.modules.email.service.EmailService;
+import com.bizflow.modules.tenant.repository.TenantRepository;
+import com.bizflow.modules.tenant.entity.Tenant;
 import com.bizflow.modules.auth.service.AuthService;
 import com.bizflow.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +33,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
     private final PasswordResetTokenRepository tokenRepository;
+    private final TenantRepository tenantRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
@@ -54,13 +57,15 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(MessageConstant.ACCOUNT_DISABLED, HttpStatus.FORBIDDEN);
 
         List<String> roles = userRoleRepository.findRoleNamesByUserId(user.getId());
+        Tenant tenant = tenantRepository.findById(user.getTenantId()).orElse(null);
+        String tenantCode = tenant != null ? tenant.getCode() : null;
 
         String accessToken = jwtService.generateToken(user.getEmail(), user.getId(), user.getTenantId(), roles);
         String refreshToken = jwtService.generateRefreshToken(user.getEmail(), user.getId(), user.getTenantId());
 
         LoginResponse response = LoginResponse.builder().token(accessToken).refreshToken(refreshToken)
-                .userId(user.getId()).tenantId(user.getTenantId()).name(user.getName()).email(user.getEmail())
-                .roles(roles).profilePictureUrl(user.getProfilePictureUrl()).build();
+                .userId(user.getId()).tenantId(user.getTenantId()).tenantCode(tenantCode).name(user.getName())
+                .email(user.getEmail()).roles(roles).profilePictureUrl(user.getProfilePictureUrl()).build();
 
         return ApiResponse.success(MessageConstant.LOGIN_SUCCESS, response);
     }
@@ -87,11 +92,13 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(MessageConstant.ACCOUNT_DISABLED, HttpStatus.FORBIDDEN);
 
         List<String> roles = userRoleRepository.findRoleNamesByUserId(userId);
+        Tenant tenant = tenantRepository.findById(tenantId).orElse(null);
+        String tenantCode = tenant != null ? tenant.getCode() : null;
 
         String newAccessToken = jwtService.generateToken(email, userId, tenantId, roles);
 
         LoginResponse response = LoginResponse.builder().token(newAccessToken).refreshToken(token).userId(userId)
-                .tenantId(tenantId).name(user.getName()).email(email).roles(roles)
+                .tenantId(tenantId).tenantCode(tenantCode).name(user.getName()).email(email).roles(roles)
                 .profilePictureUrl(user.getProfilePictureUrl()).build();
 
         return ApiResponse.success(MessageConstant.TOKEN_REFRESHED, response);

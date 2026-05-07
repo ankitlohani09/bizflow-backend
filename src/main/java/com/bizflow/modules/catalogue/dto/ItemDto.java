@@ -24,4 +24,6 @@ public class ItemDto {
     private Boolean hasVariants;
     private Boolean trackInventory;
     private Boolean isActive;
+    private String batchNo;
+    private java.time.LocalDateTime expiryDate;
 }

@@ -14,5 +14,6 @@ public class StaffDto {
     private String role;
     private BigDecimal salary;
     private LocalDate joinDate;
+    private String pin;
     private Boolean isActive;
 }
