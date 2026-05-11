@@ -25,6 +25,7 @@ public class LoginResponse {
     private String name;
     private String email;
     private List<String> roles;
+    private List<String> permissions;
     private String profilePictureUrl;
 
 }

@@ -86,7 +86,6 @@ public class KitchenOrderServiceImpl implements KitchenOrderService {
                 kitchenOrderItemRepository.save(orderItem);
                 total = total.add(lineTotal);
 
-                if (Boolean.TRUE.equals(item.getTrackInventory())) {
                     StockMovementDto movementDto = new StockMovementDto();
                     movementDto.setItemId(item.getId());
                     movementDto.setVariantId(variant != null ? variant.getId() : null);
@@ -97,7 +96,6 @@ public class KitchenOrderServiceImpl implements KitchenOrderService {
                     movementDto.setReferenceId(order.getId());
                     movementDto.setNotes("Kitchen dispatch for order " + order.getOrderNumber());
                     stockMovementService.create(movementDto);
-                }
             }
         }
 

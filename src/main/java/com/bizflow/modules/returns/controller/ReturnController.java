@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
@@ -35,5 +36,19 @@ public class ReturnController {
     @PostMapping
     public ResponseEntity<ApiResponse<ReturnDto>> create(@RequestBody ReturnDto dto) {
         return ResponseEntity.ok(returnService.create(dto));
+    }
+
+    @Operation(summary = "Approve return")
+    @PostMapping("/{id}/approve")
+    @PreAuthorize("@rbac.hasPermission('RETURN_WRITE')")
+    public ResponseEntity<ApiResponse<ReturnDto>> approve(@PathVariable Long id, @RequestParam(required = false) java.math.BigDecimal overrideRefund) {
+        return ResponseEntity.ok(returnService.approve(id, overrideRefund));
+    }
+
+    @Operation(summary = "Reject return")
+    @PostMapping("/{id}/reject")
+    @PreAuthorize("@rbac.hasPermission('RETURN_WRITE')")
+    public ResponseEntity<ApiResponse<ReturnDto>> reject(@PathVariable Long id, @RequestParam(required = false) String reason) {
+        return ResponseEntity.ok(returnService.reject(id, reason));
     }
 }

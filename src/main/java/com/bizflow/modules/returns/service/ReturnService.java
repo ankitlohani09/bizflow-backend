@@ -11,4 +11,8 @@ public interface ReturnService {
     ApiResponse<ReturnDto> getById(Long id);
 
     ApiResponse<ReturnDto> create(ReturnDto dto);
+
+    ApiResponse<ReturnDto> approve(Long id, java.math.BigDecimal overrideRefund);
+
+    ApiResponse<ReturnDto> reject(Long id, String reason);
 }

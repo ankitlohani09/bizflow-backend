@@ -28,6 +28,7 @@ import com.bizflow.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.bizflow.modules.returns.repository.ReturnItemRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -43,6 +44,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final ItemRepository itemRepository;
     private final ItemVariantRepository variantRepository;
     private final StockMovementService stockMovementService;
+    private final ReturnItemRepository returnItemRepository;
     private final PaymentModeRepository paymentModeRepository;
     private final CustomerRepository customerRepository;
     private final TaxRuleRepository taxRuleRepository;
@@ -87,6 +89,13 @@ public class InvoiceServiceImpl implements InvoiceService {
                     .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
             invoice.setCustomer(customer);
 
+            if (invoice.getCustomerName() == null || invoice.getCustomerName().trim().isEmpty()) {
+                invoice.setCustomerName(customer.getName());
+            }
+            if (invoice.getCustomerPhone() == null || invoice.getCustomerPhone().trim().isEmpty()) {
+                invoice.setCustomerPhone(customer.getPhone());
+            }
+
             // Award Loyalty Points (1% of Grand Total)
             int points = dto.getGrandTotal().divide(BigDecimal.valueOf(100), 0, BigDecimal.ROUND_FLOOR).intValue();
             if (points > 0) {
@@ -103,10 +112,12 @@ public class InvoiceServiceImpl implements InvoiceService {
                 Item item = itemRepository.findByIdAndTenantId(itemDto.getItemId(), tenantId)
                         .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.ITEM_NOT_FOUND));
                 ItemVariant variant = itemDto.getVariantId() != null
-                        ? variantRepository.findByIdAndTenantId(itemDto.getVariantId(), tenantId).orElse(null) : null;
+                        ? variantRepository.findByIdAndTenantId(itemDto.getVariantId(), tenantId).orElse(null)
+                        : null;
 
                 TaxRule taxRule = itemDto.getTaxRuleId() != null
-                        ? taxRuleRepository.findByIdAndTenantId(itemDto.getTaxRuleId(), tenantId).orElse(null) : null;
+                        ? taxRuleRepository.findByIdAndTenantId(itemDto.getTaxRuleId(), tenantId).orElse(null)
+                        : null;
 
                 InvoiceItem invoiceItem = InvoiceItem.builder().tenantId(tenantId).invoice(invoice).item(item)
                         .variant(variant).quantity(itemDto.getQuantity()).unitPrice(itemDto.getUnitPrice())
@@ -115,17 +126,15 @@ public class InvoiceServiceImpl implements InvoiceService {
                         .lineTotal(itemDto.getLineTotal()).build();
                 invoiceItemRepository.save(invoiceItem);
 
-                if (item.getTrackInventory()) {
-                    StockMovementDto movDto = new StockMovementDto();
-                    movDto.setItemId(item.getId());
-                    movDto.setVariantId(variant != null ? variant.getId() : null);
-                    movDto.setMovementType(MovementType.SALE);
-                    movDto.setDirection(MovementDirection.OUT);
-                    movDto.setQuantity(itemDto.getQuantity());
-                    movDto.setReferenceType("INVOICE");
-                    movDto.setReferenceId(invoice.getId());
-                    stockMovementService.create(movDto);
-                }
+                StockMovementDto movDto = new StockMovementDto();
+                movDto.setItemId(item.getId());
+                movDto.setVariantId(variant != null ? variant.getId() : null);
+                movDto.setMovementType(MovementType.SALE);
+                movDto.setDirection(MovementDirection.OUT);
+                movDto.setQuantity(itemDto.getQuantity());
+                movDto.setReferenceType("INVOICE");
+                movDto.setReferenceId(invoice.getId());
+                stockMovementService.create(movDto);
             }
         }
 
@@ -178,8 +187,10 @@ public class InvoiceServiceImpl implements InvoiceService {
         dto.setInvoiceNumber(i.getInvoiceNumber());
         dto.setInvoiceType(i.getInvoiceType());
         dto.setCustomerId(i.getCustomer() != null ? i.getCustomer().getId() : null);
-        dto.setCustomerName(i.getCustomerName());
-        dto.setCustomerPhone(i.getCustomerPhone());
+        dto.setCustomerName(i.getCustomerName() != null ? i.getCustomerName()
+                : (i.getCustomer() != null ? i.getCustomer().getName() : null));
+        dto.setCustomerPhone(i.getCustomerPhone() != null ? i.getCustomerPhone()
+                : (i.getCustomer() != null ? i.getCustomer().getPhone() : null));
         dto.setSubtotal(i.getSubtotal());
         dto.setDiscountAmount(i.getDiscountAmount());
         dto.setTaxAmount(i.getTaxAmount());
@@ -203,6 +214,12 @@ public class InvoiceServiceImpl implements InvoiceService {
         dto.setVariantId(ii.getVariant() != null ? ii.getVariant().getId() : null);
         dto.setVariantName(ii.getVariant() != null ? ii.getVariant().getVariantName() : null);
         dto.setQuantity(ii.getQuantity());
+        
+        // Calculate remaining quantity
+        BigDecimal returnedQty = returnItemRepository.sumReturnedQuantity(ii.getInvoice().getId(), ii.getItem().getId(), ii.getVariant() != null ? ii.getVariant().getId() : null);
+        if (returnedQty == null) returnedQty = BigDecimal.ZERO;
+        dto.setRemainingQuantity(ii.getQuantity().subtract(returnedQty));
+
         dto.setUnitPrice(ii.getUnitPrice());
         dto.setDiscountPct(ii.getDiscountPct());
         dto.setTaxRate(ii.getTaxRate());

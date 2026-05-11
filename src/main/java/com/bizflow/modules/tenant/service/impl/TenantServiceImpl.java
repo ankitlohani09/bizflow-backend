@@ -17,6 +17,7 @@ import com.bizflow.modules.user.entity.User;
 import com.bizflow.modules.user.entity.UserRole;
 import com.bizflow.modules.user.repository.UserRepository;
 import com.bizflow.modules.user.repository.UserRoleRepository;
+import com.bizflow.modules.logs.service.ActivityLogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -44,6 +45,7 @@ public class TenantServiceImpl implements TenantService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final InvoiceRepository invoiceRepository;
+    private final ActivityLogService activityLogService;
 
     @Override
     public ApiResponse<List<TenantResponse>> getAll() {
@@ -86,7 +88,7 @@ public class TenantServiceImpl implements TenantService {
                 .createdAt(LocalDateTime.now()).build());
         roleRepository.save(Role.builder().name("MANAGER").tenantId(tenantId).description("Store Manager")
                 .createdAt(LocalDateTime.now()).build());
-        roleRepository.save(Role.builder().name("USER").tenantId(tenantId).description("Staff/Cashier")
+        roleRepository.save(Role.builder().name("CASHIER").tenantId(tenantId).description("Staff/Cashier")
                 .createdAt(LocalDateTime.now()).build());
 
         // 3. Create Owner User
@@ -132,6 +134,9 @@ public class TenantServiceImpl implements TenantService {
         tenant.setMaxUsers(request.getMaxUsers());
         tenant.setIsGpsMandatory(request.getIsGpsMandatory());
         tenant.setIsSelfieMandatory(request.getIsSelfieMandatory());
+        tenant.setIsKitchenEnabled(request.getIsKitchenEnabled());
+
+        activityLogService.log("UPDATE_TENANT", "TENANT", tenant.getId(), "Tenant settings updated", null);
 
         return ApiResponse.success("Tenant updated successfully", toResponse(tenantRepository.save(tenant)));
     }
@@ -206,6 +211,7 @@ public class TenantServiceImpl implements TenantService {
                 .phone(t.getPhone()).address(t.getAddress()).businessType(t.getBusinessType()).isActive(t.getIsActive())
                 .subscriptionPlan(t.getSubscriptionPlan()).expiryDate(t.getExpiryDate()).maxUsers(t.getMaxUsers())
                 .isGpsMandatory(t.getIsGpsMandatory()).isSelfieMandatory(t.getIsSelfieMandatory())
+                .isKitchenEnabled(t.getIsKitchenEnabled())
                 .createdAt(t.getCreatedAt()).updatedAt(t.getUpdatedAt()).build();
     }
 }

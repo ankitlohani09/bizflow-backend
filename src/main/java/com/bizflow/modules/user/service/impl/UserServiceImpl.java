@@ -17,6 +17,7 @@ import com.bizflow.modules.auth.repository.PasswordResetTokenRepository;
 import com.bizflow.modules.email.service.EmailService;
 import com.bizflow.modules.tenant.repository.TenantRepository;
 import com.bizflow.modules.user.service.UserService;
+import com.bizflow.modules.logs.service.ActivityLogService;
 import com.bizflow.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -39,6 +40,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final FileStorageService fileStorageService;
     private final EmailService emailService;
+    private final ActivityLogService activityLogService;
 
     @Override
     public ApiResponse<List<UserResponse>> getAllUsers() {
@@ -131,6 +133,7 @@ public class UserServiceImpl implements UserService {
 
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
+            activityLogService.log("UPDATE_PASSWORD", "USER", user.getId(), "User updated password", null);
         }
 
         user = userRepository.save(user);

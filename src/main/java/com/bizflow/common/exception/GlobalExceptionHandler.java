@@ -47,6 +47,14 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("File size exceeds the maximum limit."));
     }
 
+    // ✅ Access Denied
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAccessDeniedException(org.springframework.security.access.AccessDeniedException ex) {
+        log.warn("Access denied: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
     // ✅ RuntimeException (fallback for unexpected runtime errors)
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<Void>> handleRuntimeException(RuntimeException ex) {

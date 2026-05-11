@@ -13,5 +13,7 @@ public class ActivityLogDto {
     private Long entityId;
     private String description;
     private String ipAddress;
+    private String userName;
+    private String userRole;
     private LocalDateTime createdAt;
 }

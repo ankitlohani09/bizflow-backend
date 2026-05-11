@@ -13,4 +13,6 @@ public interface ActivityLogService {
     ApiResponse<List<ActivityLogDto>> getByEntity(String entityType, Long entityId);
 
     void log(String action, String entityType, Long entityId, String description, String ipAddress);
+
+    void log(Long tenantId, Long userId, String action, String entityType, Long entityId, String description, String ipAddress);
 }

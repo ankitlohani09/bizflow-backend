@@ -57,9 +57,7 @@ public class Item extends BaseEntity {
     @Column(name = "has_variants")
     private Boolean hasVariants = false;
 
-    @Builder.Default
-    @Column(name = "track_inventory")
-    private Boolean trackInventory = true;
+
 
     @Builder.Default
     @Column(name = "is_active")

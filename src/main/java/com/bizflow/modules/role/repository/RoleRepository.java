@@ -13,4 +13,6 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
     Optional<Role> findByIdAndTenantId(Long id, Long tenantId);
 
     boolean existsByNameAndTenantId(String name, Long tenantId);
+
+    List<Role> findByTenantIdAndNameIn(Long tenantId, List<String> names);
 }

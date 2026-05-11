@@ -90,7 +90,6 @@ public class PurchaseServiceImpl implements PurchaseService {
                 purchaseItemRepository.save(purchaseItem);
 
                 // Stock IN movement
-                if (item.getTrackInventory()) {
                     StockMovementDto movDto = new StockMovementDto();
                     movDto.setItemId(item.getId());
                     movDto.setVariantId(variant != null ? variant.getId() : null);
@@ -102,7 +101,6 @@ public class PurchaseServiceImpl implements PurchaseService {
                     movDto.setReferenceType("PURCHASE");
                     movDto.setReferenceId(purchase.getId());
                     stockMovementService.create(movDto);
-                }
             }
         }
 
