@@ -22,6 +22,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.bizflow.modules.billing.repository.InvoiceRepository;
+import com.bizflow.modules.tenant.dto.GlobalStatsResponse;
+import com.bizflow.modules.tenant.dto.GrowthDataPoint;
+import com.bizflow.modules.tenant.dto.TenantStatsResponse;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,6 +43,7 @@ public class TenantServiceImpl implements TenantService {
     private final PasswordResetTokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final InvoiceRepository invoiceRepository;
 
     @Override
     public ApiResponse<List<TenantResponse>> getAll() {
@@ -65,6 +70,10 @@ public class TenantServiceImpl implements TenantService {
         Tenant tenant = Tenant.builder().tenantId(1L).name(request.getName()).code(request.getCode().toUpperCase())
                 .email(request.getEmail()).phone(request.getPhone()).address(request.getAddress())
                 .businessType(request.getBusinessType()).isActive(request.getIsActive())
+                .subscriptionPlan(request.getSubscriptionPlan() != null ? request.getSubscriptionPlan() : "TRIAL")
+                .expiryDate(
+                        request.getExpiryDate() != null ? request.getExpiryDate() : LocalDateTime.now().plusMonths(1))
+                .maxUsers(request.getMaxUsers() != null ? request.getMaxUsers() : 5)
                 .isGpsMandatory(request.getIsGpsMandatory()).isSelfieMandatory(request.getIsSelfieMandatory()).build();
 
         tenant = tenantRepository.save(tenant);
@@ -118,6 +127,9 @@ public class TenantServiceImpl implements TenantService {
         tenant.setAddress(request.getAddress());
         tenant.setBusinessType(request.getBusinessType());
         tenant.setIsActive(request.getIsActive());
+        tenant.setSubscriptionPlan(request.getSubscriptionPlan());
+        tenant.setExpiryDate(request.getExpiryDate());
+        tenant.setMaxUsers(request.getMaxUsers());
         tenant.setIsGpsMandatory(request.getIsGpsMandatory());
         tenant.setIsSelfieMandatory(request.getIsSelfieMandatory());
 
@@ -132,9 +144,67 @@ public class TenantServiceImpl implements TenantService {
         return ApiResponse.success("Tenant deleted successfully", null);
     }
 
+    @Override
+    public ApiResponse<TenantStatsResponse> getStats(Long id) {
+        Tenant tenant = tenantRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Tenant", id));
+
+        long userCount = userRepository.countByTenantId(id);
+
+        LocalDateTime startOfMonth = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
+        long invoiceCount = invoiceRepository.countByTenantIdAndCreatedAtBetween(id, startOfMonth, LocalDateTime.now());
+
+        Double usagePercentage = (userCount * 100.0) / tenant.getMaxUsers();
+
+        TenantStatsResponse stats = TenantStatsResponse.builder().activeUsers(userCount)
+                .maxUsersLimit(tenant.getMaxUsers().longValue()).monthlyInvoices(invoiceCount)
+                .usagePercentage(usagePercentage).build();
+
+        return ApiResponse.success(stats);
+    }
+
+    @Override
+    public ApiResponse<GlobalStatsResponse> getGlobalStats() {
+        List<Tenant> tenants = tenantRepository.findAll();
+        long totalUsers = userRepository.count();
+
+        long active = tenants.stream().filter(Tenant::getIsActive).count();
+        long trial = tenants.stream().filter(t -> "TRIAL".equalsIgnoreCase(t.getSubscriptionPlan())).count();
+        long pro = tenants.stream().filter(t -> "PRO".equalsIgnoreCase(t.getSubscriptionPlan())).count();
+        long enterprise = tenants.stream().filter(t -> "ENTERPRISE".equalsIgnoreCase(t.getSubscriptionPlan())).count();
+
+        // Calculate monthly growth (last 6 months)
+        java.util.List<GrowthDataPoint> growth = new java.util.ArrayList<>();
+        java.util.List<GrowthDataPoint> revGrowth = new java.util.ArrayList<>();
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("MMM");
+
+        for (int i = 5; i >= 0; i--) {
+            LocalDateTime monthStart = LocalDateTime.now().minusMonths(i).withDayOfMonth(1).withHour(0).withMinute(0);
+            LocalDateTime monthEnd = monthStart.plusMonths(1).minusNanos(1);
+
+            long count = tenants.stream()
+                    .filter(t -> t.getCreatedAt().isAfter(monthStart) && t.getCreatedAt().isBefore(monthEnd)).count();
+
+            growth.add(GrowthDataPoint.builder().month(monthStart.format(formatter)).count(count).build());
+
+            Double rev = invoiceRepository.sumGrandTotalBetween(monthStart, monthEnd);
+            revGrowth.add(GrowthDataPoint.builder().month(monthStart.format(formatter))
+                    .count((long) (rev != null ? rev : 0.0)).build());
+        }
+
+        Double totalRev = invoiceRepository.sumGrandTotalAllTime();
+
+        GlobalStatsResponse stats = GlobalStatsResponse.builder().totalTenants((long) tenants.size())
+                .activeTenants(active).trialTenants(trial).proTenants(pro).enterpriseTenants(enterprise)
+                .totalUsers(totalUsers).systemHealth("OPTIMAL").totalRevenue(totalRev != null ? totalRev : 0.0)
+                .tenantGrowth(growth).revenueGrowth(revGrowth).build();
+
+        return ApiResponse.success(stats);
+    }
+
     private TenantResponse toResponse(Tenant t) {
         return TenantResponse.builder().id(t.getId()).name(t.getName()).code(t.getCode()).email(t.getEmail())
                 .phone(t.getPhone()).address(t.getAddress()).businessType(t.getBusinessType()).isActive(t.getIsActive())
+                .subscriptionPlan(t.getSubscriptionPlan()).expiryDate(t.getExpiryDate()).maxUsers(t.getMaxUsers())
                 .isGpsMandatory(t.getIsGpsMandatory()).isSelfieMandatory(t.getIsSelfieMandatory())
                 .createdAt(t.getCreatedAt()).updatedAt(t.getUpdatedAt()).build();
     }

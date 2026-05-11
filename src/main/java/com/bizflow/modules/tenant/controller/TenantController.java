@@ -27,6 +27,12 @@ public class TenantController {
         return ResponseEntity.ok(tenantService.getAll());
     }
 
+    @Operation(summary = "Get global stats")
+    @GetMapping("/global-stats")
+    public ResponseEntity<ApiResponse<com.bizflow.modules.tenant.dto.GlobalStatsResponse>> getGlobalStats() {
+        return ResponseEntity.ok(tenantService.getGlobalStats());
+    }
+
     @Operation(summary = "Get tenant by ID")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<TenantResponse>> getById(@PathVariable Long id) {
@@ -44,6 +50,13 @@ public class TenantController {
     public ResponseEntity<ApiResponse<TenantResponse>> update(@PathVariable Long id,
             @Valid @RequestBody TenantRequest request) {
         return ResponseEntity.ok(tenantService.update(id, request));
+    }
+
+    @Operation(summary = "Get tenant stats")
+    @GetMapping("/{id}/stats")
+    public ResponseEntity<ApiResponse<com.bizflow.modules.tenant.dto.TenantStatsResponse>> getStats(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(tenantService.getStats(id));
     }
 
     @Operation(summary = "Delete tenant")

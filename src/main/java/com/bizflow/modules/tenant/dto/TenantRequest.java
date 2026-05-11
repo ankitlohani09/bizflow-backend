@@ -10,10 +10,8 @@ public class TenantRequest {
     @NotBlank(message = "Name is required")
     private String name;
 
-    @NotBlank(message = "Code is required")
     private String code;
 
-    @NotBlank(message = "Owner name is required")
     private String ownerName;
 
     @NotBlank(message = "Email is required")
@@ -24,6 +22,9 @@ public class TenantRequest {
     private String address;
     private String businessType;
     private Boolean isActive = true;
+    private String subscriptionPlan;
+    private java.time.LocalDateTime expiryDate;
+    private Integer maxUsers;
     private Boolean isGpsMandatory = false;
     private Boolean isSelfieMandatory = false;
 }

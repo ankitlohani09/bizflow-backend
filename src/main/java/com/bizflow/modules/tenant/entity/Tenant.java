@@ -28,6 +28,14 @@ public class Tenant extends BaseEntity {
     private String businessType;
 
     @Builder.Default
+    private String subscriptionPlan = "TRIAL";
+
+    private java.time.LocalDateTime expiryDate;
+
+    @Builder.Default
+    private Integer maxUsers = 5;
+
+    @Builder.Default
     @Column(nullable = false)
     private Boolean isActive = true;
 
