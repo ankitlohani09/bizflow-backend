@@ -18,7 +18,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/reports")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'MANAGER')")
+@PreAuthorize("hasAnyRole('OWNER', 'MANAGER')")
 public class ReportController {
 
     private final ReportService reportService;
@@ -42,7 +42,7 @@ public class ReportController {
 
     @Operation(summary = "Get profit and loss report")
     @GetMapping("/profit-loss")
-    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getProfitLossReport(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {

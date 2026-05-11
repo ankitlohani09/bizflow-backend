@@ -19,6 +19,7 @@ import com.bizflow.modules.tenant.repository.TenantRepository;
 import com.bizflow.modules.user.service.UserService;
 import com.bizflow.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -114,15 +115,30 @@ public class UserServiceImpl implements UserService {
         user.setPhone(request.getPhone());
         user.setIsActive(request.getIsActive());
 
+        // Security check for password update
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        if (id.equals(currentUserId)) {
+            // User updating themselves -> Require current password if updating password
+            if (request.getPassword() != null && !request.getPassword().isBlank()) {
+                if (request.getCurrentPassword() == null || request.getCurrentPassword().isBlank()) {
+                    throw new BusinessException("Current password is required to change password", HttpStatus.BAD_REQUEST);
+                }
+                if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+                    throw new BusinessException("Incorrect current password", HttpStatus.BAD_REQUEST);
+                }
+            }
+        }
+
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
         user = userRepository.save(user);
 
-        // Replace existing roles with new ones
-        userRoleRepository.deleteByUserId(user.getId());
-        assignRoles(tenantId, user.getId(), request.getRoleIds());
+        if (request.getRoleIds() != null && !request.getRoleIds().isEmpty()) {
+            userRoleRepository.deleteByUserId(user.getId());
+            assignRoles(tenantId, user.getId(), request.getRoleIds());
+        }
 
         return ApiResponse.success(MessageConstant.USER_UPDATED, toResponse(user));
     }

@@ -15,5 +15,9 @@ public interface TenantService {
 
     ApiResponse<TenantResponse> update(Long id, TenantRequest request);
 
+    ApiResponse<com.bizflow.modules.tenant.dto.TenantStatsResponse> getStats(Long id);
+
+    ApiResponse<com.bizflow.modules.tenant.dto.GlobalStatsResponse> getGlobalStats();
+
     ApiResponse<Void> delete(Long id);
 }

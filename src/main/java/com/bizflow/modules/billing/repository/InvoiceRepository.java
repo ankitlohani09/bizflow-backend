@@ -20,4 +20,12 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
 
     List<Invoice> findAllByTenantIdAndCreatedAtBetweenOrderByCreatedAtAsc(Long tenantId, LocalDateTime from,
             LocalDateTime to);
+
+    long countByTenantIdAndCreatedAtBetween(Long tenantId, LocalDateTime from, LocalDateTime to);
+
+    @org.springframework.data.jpa.repository.Query("SELECT SUM(i.grandTotal) FROM Invoice i WHERE i.createdAt BETWEEN :from AND :to")
+    Double sumGrandTotalBetween(LocalDateTime from, LocalDateTime to);
+
+    @org.springframework.data.jpa.repository.Query("SELECT SUM(i.grandTotal) FROM Invoice i")
+    Double sumGrandTotalAllTime();
 }

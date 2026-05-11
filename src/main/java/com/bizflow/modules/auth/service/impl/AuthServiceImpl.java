@@ -42,11 +42,14 @@ public class AuthServiceImpl implements AuthService {
     public ApiResponse<LoginResponse> login(LoginRequest request) {
         // ... (existing implementation)
         User user;
+        String identifier = request.getEmail(); // The 'email' field in LoginRequest might contain a phone number
+
         if (request.getTenantId() != null) {
-            user = userRepository.findByEmailAndTenantId(request.getEmail(), request.getTenantId()).orElseThrow(
-                    () -> new BusinessException(MessageConstant.INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED));
+            user = userRepository.findByEmailAndTenantId(identifier, request.getTenantId())
+                    .or(() -> userRepository.findByPhoneAndTenantId(identifier, request.getTenantId())).orElseThrow(
+                            () -> new BusinessException(MessageConstant.INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED));
         } else {
-            user = userRepository.findByEmail(request.getEmail()).orElseThrow(
+            user = userRepository.findByEmail(identifier).or(() -> userRepository.findByPhone(identifier)).orElseThrow(
                     () -> new BusinessException(MessageConstant.INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED));
         }
 

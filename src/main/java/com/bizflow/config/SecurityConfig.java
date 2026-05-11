@@ -45,73 +45,72 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable).httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth.requestMatchers(PUBLIC_URLS).permitAll()
 
-                        // ✅ Users - ADMIN + OWNER only
-                        .requestMatchers("/api/v1/users/**").hasAnyRole("ADMIN", "OWNER")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/roles/**").hasAnyRole("ADMIN", "OWNER")
-                        .requestMatchers("/api/v1/roles/**").hasRole("ADMIN")
+                        // ✅ Users - OWNER only
+                        .requestMatchers("/api/v1/users/**").hasRole("OWNER")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/roles/**").hasRole("OWNER")
+                        .requestMatchers("/api/v1/roles/**").hasRole("OWNER")
 
                         // ✅ Customers
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/customers/**").hasAnyRole("ADMIN", "OWNER")
-                        .requestMatchers("/api/v1/customers/**").hasAnyRole("ADMIN", "OWNER", "MANAGER", "USER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/customers/**").hasRole("OWNER")
+                        .requestMatchers("/api/v1/customers/**").hasAnyRole("OWNER", "MANAGER", "USER")
 
                         // ✅ Categories
                         .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").authenticated()
-                        .requestMatchers("/api/v1/categories/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/categories/**").hasRole("OWNER")
 
                         // ✅ Items & Variants
                         .requestMatchers(HttpMethod.GET, "/api/v1/items/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/item-variants/**").authenticated()
-                        .requestMatchers("/api/v1/items/**").hasAnyRole("ADMIN", "OWNER", "MANAGER")
-                        .requestMatchers("/api/v1/item-variants/**").hasAnyRole("ADMIN", "OWNER", "MANAGER")
+                        .requestMatchers("/api/v1/items/**").hasAnyRole("OWNER", "MANAGER")
+                        .requestMatchers("/api/v1/item-variants/**").hasAnyRole("OWNER", "MANAGER")
 
                         // ✅ Inventory & Stock Movements
                         .requestMatchers(HttpMethod.GET, "/api/v1/inventory/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/stock-movements/**").authenticated()
-                        .requestMatchers("/api/v1/inventory/**").hasAnyRole("ADMIN", "OWNER", "MANAGER")
-                        .requestMatchers("/api/v1/stock-movements/**").hasAnyRole("ADMIN", "OWNER", "MANAGER")
+                        .requestMatchers("/api/v1/inventory/**").hasAnyRole("OWNER", "MANAGER")
+                        .requestMatchers("/api/v1/stock-movements/**").hasAnyRole("OWNER", "MANAGER")
 
                         // ✅ Invoices + Returns
                         .requestMatchers(HttpMethod.GET, "/api/v1/invoices/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/returns/**").authenticated()
-                        .requestMatchers("/api/v1/invoices/**").hasAnyRole("ADMIN", "OWNER", "MANAGER", "USER")
-                        .requestMatchers("/api/v1/returns/**").hasAnyRole("ADMIN", "OWNER", "MANAGER", "USER")
+                        .requestMatchers("/api/v1/invoices/**").hasAnyRole("OWNER", "MANAGER", "USER")
+                        .requestMatchers("/api/v1/returns/**").hasAnyRole("OWNER", "MANAGER", "USER")
 
                         // ✅ Kitchen Orders (Restaurant)
                         .requestMatchers(HttpMethod.GET, "/api/v1/kitchen-orders/**").authenticated()
-                        .requestMatchers(HttpMethod.PATCH, "/api/v1/kitchen-orders/**")
-                        .hasAnyRole("ADMIN", "OWNER", "MANAGER").requestMatchers("/api/v1/kitchen-orders/**")
-                        .hasAnyRole("ADMIN", "OWNER", "MANAGER", "USER")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/kitchen-orders/**").hasAnyRole("OWNER", "MANAGER")
+                        .requestMatchers("/api/v1/kitchen-orders/**").hasAnyRole("OWNER", "MANAGER", "USER")
 
                         // ✅ Purchases
-                        .requestMatchers("/api/v1/purchases/**").hasAnyRole("ADMIN", "OWNER", "MANAGER")
+                        .requestMatchers("/api/v1/purchases/**").hasAnyRole("OWNER", "MANAGER")
 
                         // ✅ Finance
-                        .requestMatchers("/api/v1/expenses/**").hasAnyRole("ADMIN", "OWNER", "MANAGER")
-                        .requestMatchers("/api/v1/expense-categories/**").hasAnyRole("ADMIN", "OWNER", "MANAGER")
-                        .requestMatchers("/api/v1/payment-modes/**").hasAnyRole("ADMIN", "OWNER", "MANAGER")
+                        .requestMatchers("/api/v1/expenses/**").hasAnyRole("OWNER", "MANAGER")
+                        .requestMatchers("/api/v1/expense-categories/**").hasAnyRole("OWNER", "MANAGER")
+                        .requestMatchers("/api/v1/payment-modes/**").hasAnyRole("OWNER", "MANAGER")
 
                         // ✅ Staff, Attendance, Advances
-                        .requestMatchers("/api/v1/staff/**").hasAnyRole("ADMIN", "OWNER", "MANAGER")
-                        .requestMatchers("/api/v1/attendance/**").hasAnyRole("ADMIN", "OWNER", "MANAGER")
-                        .requestMatchers("/api/v1/staff-advances/**").hasAnyRole("ADMIN", "OWNER", "MANAGER")
+                        .requestMatchers("/api/v1/staff/**").hasAnyRole("OWNER", "MANAGER")
+                        .requestMatchers("/api/v1/attendance/**").hasAnyRole("OWNER", "MANAGER")
+                        .requestMatchers("/api/v1/staff-advances/**").hasAnyRole("OWNER", "MANAGER")
 
                         // ✅ Masters
                         .requestMatchers(HttpMethod.GET, "/api/v1/units/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/suppliers/**").authenticated()
-                        .requestMatchers("/api/v1/units/**").hasAnyRole("ADMIN", "OWNER")
-                        .requestMatchers("/api/v1/suppliers/**").hasAnyRole("ADMIN", "OWNER", "MANAGER")
+                        .requestMatchers("/api/v1/units/**").hasRole("OWNER").requestMatchers("/api/v1/suppliers/**")
+                        .hasAnyRole("OWNER", "MANAGER")
 
-                        // ✅ Reports - ADMIN+OWNER+MANAGER (P&L sirf ADMIN+OWNER — @PreAuthorize handles it)
-                        .requestMatchers("/api/v1/reports/**").hasAnyRole("ADMIN", "OWNER", "MANAGER") // ✅ NEW
+                        // ✅ Reports - OWNER+MANAGER (P&L sirf OWNER — @PreAuthorize handles it)
+                        .requestMatchers("/api/v1/reports/**").hasAnyRole("OWNER", "MANAGER") // ✅ NEW
 
                         // ✅ Tenants - ADMIN only (super admin)
                         .requestMatchers("/api/v1/tenants/**").hasRole("ADMIN") // ✅ NEW
 
                         // ✅ Logs, White Label, AI
-                        .requestMatchers("/api/v1/ai-logs/**").hasAnyRole("ADMIN", "OWNER")
-                        .requestMatchers("/api/v1/activity-logs/**").hasAnyRole("ADMIN", "OWNER")
-                        .requestMatchers("/api/v1/white-label/**").hasAnyRole("ADMIN", "OWNER")
-                        .requestMatchers("/api/v1/ai/**").hasAnyRole("ADMIN", "OWNER", "MANAGER")
+                        .requestMatchers("/api/v1/ai-logs/**").hasRole("OWNER")
+                        .requestMatchers("/api/v1/activity-logs/**").hasRole("OWNER")
+                        .requestMatchers("/api/v1/white-label/**").hasRole("OWNER").requestMatchers("/api/v1/ai/**")
+                        .hasAnyRole("OWNER", "MANAGER")
 
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {

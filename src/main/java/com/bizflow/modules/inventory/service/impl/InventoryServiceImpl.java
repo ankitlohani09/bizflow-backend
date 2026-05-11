@@ -91,16 +91,10 @@ public class InventoryServiceImpl implements InventoryService {
 
         List<Item> missingItems = items.stream().filter(item -> !existingItemIds.contains(item.getId())).toList();
 
-        List<Inventory> newInventories = missingItems.stream().map(item -> 
-            Inventory.builder()
-                .item(item)
-                .availableQty(BigDecimal.ZERO)
-                .damagedQty(BigDecimal.ZERO)
-                .expiredQty(BigDecimal.ZERO)
-                .reservedQty(BigDecimal.ZERO)
-                .tenantId(tenantId)
-                .build()
-        ).toList();
+        List<Inventory> newInventories = missingItems.stream()
+                .map(item -> Inventory.builder().item(item).availableQty(BigDecimal.ZERO).damagedQty(BigDecimal.ZERO)
+                        .expiredQty(BigDecimal.ZERO).reservedQty(BigDecimal.ZERO).tenantId(tenantId).build())
+                .collect(Collectors.toList());
 
         if (!newInventories.isEmpty()) {
             inventoryRepository.saveAll(newInventories);

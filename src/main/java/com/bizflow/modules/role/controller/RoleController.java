@@ -24,28 +24,28 @@ public class RoleController {
 
     @Operation(summary = "Get all roles")
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<ApiResponse<List<RoleResponse>>> getAllRoles() {
         return ResponseEntity.ok(roleService.getAllRoles());
     }
 
     @Operation(summary = "Get role by ID")
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<ApiResponse<RoleResponse>> getRoleById(@PathVariable Long id) {
         return ResponseEntity.ok(roleService.getRoleById(id));
     }
 
     @Operation(summary = "Create role")
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<ApiResponse<RoleResponse>> createRole(@Valid @RequestBody RoleRequest request) {
         return ResponseEntity.ok(roleService.createRole(request));
     }
 
     @Operation(summary = "Update role")
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<ApiResponse<RoleResponse>> updateRole(@PathVariable Long id,
             @Valid @RequestBody RoleRequest request) {
         return ResponseEntity.ok(roleService.updateRole(id, request));
@@ -53,7 +53,7 @@ public class RoleController {
 
     @Operation(summary = "Delete role")
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<ApiResponse<Void>> deleteRole(@PathVariable Long id) {
         return ResponseEntity.ok(roleService.deleteRole(id));
     }

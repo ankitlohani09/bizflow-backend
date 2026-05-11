@@ -21,7 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN', 'OWNER')")
+@PreAuthorize("hasRole('OWNER')")
 public class UserController {
 
     private final UserService userService;
@@ -29,7 +29,7 @@ public class UserController {
 
     @Operation(summary = "Upload profile picture")
     @PostMapping("/{id}/profile-picture")
-    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER') or #id == authentication.principal.userId")
+    @PreAuthorize("hasRole('OWNER') or #id == authentication.principal.userId")
     public ResponseEntity<ApiResponse<UserResponse>> uploadProfilePicture(@PathVariable Long id,
             @RequestParam("file") MultipartFile file) {
 
@@ -43,7 +43,7 @@ public class UserController {
 
     @Operation(summary = "Delete profile picture")
     @DeleteMapping("/{id}/profile-picture")
-    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER') or #id == authentication.principal.userId")
+    @PreAuthorize("hasRole('OWNER') or #id == authentication.principal.userId")
     public ResponseEntity<ApiResponse<UserResponse>> deleteProfilePicture(@PathVariable Long id) {
         return ResponseEntity.ok(userService.updateProfilePicture(id, null));
     }

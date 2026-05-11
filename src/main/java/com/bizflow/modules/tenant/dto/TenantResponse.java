@@ -18,6 +18,9 @@ public class TenantResponse {
     private String address;
     private String businessType;
     private Boolean isActive;
+    private String subscriptionPlan;
+    private LocalDateTime expiryDate;
+    private Integer maxUsers;
     private Boolean isGpsMandatory;
     private Boolean isSelfieMandatory;
     private LocalDateTime createdAt;
