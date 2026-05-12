@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.bizflow.modules.returns.repository.ReturnItemRepository;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -97,7 +98,7 @@ public class InvoiceServiceImpl implements InvoiceService {
             }
 
             // Award Loyalty Points (1% of Grand Total)
-            int points = dto.getGrandTotal().divide(BigDecimal.valueOf(100), 0, BigDecimal.ROUND_FLOOR).intValue();
+            int points = dto.getGrandTotal().divide(BigDecimal.valueOf(100), 0, RoundingMode.FLOOR).intValue();
             if (points > 0) {
                 customer.setLoyaltyPoints(
                         (customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0) + points);

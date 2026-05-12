@@ -24,11 +24,10 @@ public class RbacService {
         }
 
         Object principal = authentication.getPrincipal();
-        if (!(principal instanceof BizFlowUserDetails)) {
+        if (!(principal instanceof BizFlowUserDetails userDetails)) {
             return false;
         }
 
-        BizFlowUserDetails userDetails = (BizFlowUserDetails) principal;
         Long tenantId = userDetails.getTenantId();
         List<String> roles = userDetails.getRoles();
 

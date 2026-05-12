@@ -94,7 +94,8 @@ public class ReturnServiceImpl implements ReturnService {
                         ? variantRepository.findByIdAndTenantId(itemDto.getVariantId(), tenantId).orElse(null) : null;
 
                 // Validate return quantity against invoice purchased quantity
-                BigDecimal alreadyReturned = returnItemRepository.sumReturnedQuantity(invoice.getId(), item.getId(),
+                BigDecimal alreadyReturned = returnItemRepository.sumReturnedQuantity(
+                        invoice != null ? invoice.getId() : null, item.getId(),
                         variant != null ? variant.getId() : null);
                 if (alreadyReturned == null)
                     alreadyReturned = BigDecimal.ZERO;
