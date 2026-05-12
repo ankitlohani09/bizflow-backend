@@ -57,8 +57,6 @@ public class Item extends BaseEntity {
     @Column(name = "has_variants")
     private Boolean hasVariants = false;
 
-
-
     @Builder.Default
     @Column(name = "is_active")
     private Boolean isActive = true;

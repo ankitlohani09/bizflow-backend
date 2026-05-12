@@ -211,7 +211,7 @@ public class TenantServiceImpl implements TenantService {
                 .phone(t.getPhone()).address(t.getAddress()).businessType(t.getBusinessType()).isActive(t.getIsActive())
                 .subscriptionPlan(t.getSubscriptionPlan()).expiryDate(t.getExpiryDate()).maxUsers(t.getMaxUsers())
                 .isGpsMandatory(t.getIsGpsMandatory()).isSelfieMandatory(t.getIsSelfieMandatory())
-                .isKitchenEnabled(t.getIsKitchenEnabled())
-                .createdAt(t.getCreatedAt()).updatedAt(t.getUpdatedAt()).build();
+                .isKitchenEnabled(t.getIsKitchenEnabled()).createdAt(t.getCreatedAt()).updatedAt(t.getUpdatedAt())
+                .build();
     }
 }

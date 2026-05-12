@@ -29,24 +29,24 @@ public class ActivityLogServiceImpl implements ActivityLogService {
     public ApiResponse<List<ActivityLogDto>> getAll() {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         List<ActivityLog> logs = activityLogRepository.findAllByTenantIdOrderByCreatedAtDesc(tenantId);
-        
+
         List<Long> userIds = logs.stream().map(ActivityLog::getUserId).filter(Objects::nonNull).distinct().toList();
         List<User> users = userRepository.findAllById(userIds);
-        Map<Long, User> userMap = users.stream().collect(Collectors.toMap(com.bizflow.modules.user.entity.User::getId, u -> u));
-        
-        return ApiResponse.success(logs.stream()
-                .map(log -> {
-                    ActivityLogDto dto = toDto(log);
-                    User user = userMap.get(log.getUserId());
-                    if (user != null) {
-                        dto.setUserName(user.getName());
-                        List<String> roles = userRoleRepository.findRoleNamesByUserId(user.getId());
-                        if (!roles.isEmpty()) {
-                            dto.setUserRole(roles.getFirst());
-                        }
-                    }
-                    return dto;
-                }).toList());
+        Map<Long, User> userMap = users.stream()
+                .collect(Collectors.toMap(com.bizflow.modules.user.entity.User::getId, u -> u));
+
+        return ApiResponse.success(logs.stream().map(log -> {
+            ActivityLogDto dto = toDto(log);
+            User user = userMap.get(log.getUserId());
+            if (user != null) {
+                dto.setUserName(user.getName());
+                List<String> roles = userRoleRepository.findRoleNamesByUserId(user.getId());
+                if (!roles.isEmpty()) {
+                    dto.setUserRole(roles.getFirst());
+                }
+            }
+            return dto;
+        }).toList());
     }
 
     @Override
@@ -75,7 +75,8 @@ public class ActivityLogServiceImpl implements ActivityLogService {
     }
 
     @Override
-    public void log(Long tenantId, Long userId, String action, String entityType, Long entityId, String description, String ipAddress) {
+    public void log(Long tenantId, Long userId, String action, String entityType, Long entityId, String description,
+            String ipAddress) {
         ActivityLog log = ActivityLog.builder().tenantId(tenantId).userId(userId).action(action).entityType(entityType)
                 .entityId(entityId).description(description).ipAddress(ipAddress).build();
         activityLogRepository.save(log);

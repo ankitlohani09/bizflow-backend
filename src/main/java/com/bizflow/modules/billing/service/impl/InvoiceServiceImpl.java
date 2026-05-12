@@ -112,12 +112,10 @@ public class InvoiceServiceImpl implements InvoiceService {
                 Item item = itemRepository.findByIdAndTenantId(itemDto.getItemId(), tenantId)
                         .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.ITEM_NOT_FOUND));
                 ItemVariant variant = itemDto.getVariantId() != null
-                        ? variantRepository.findByIdAndTenantId(itemDto.getVariantId(), tenantId).orElse(null)
-                        : null;
+                        ? variantRepository.findByIdAndTenantId(itemDto.getVariantId(), tenantId).orElse(null) : null;
 
                 TaxRule taxRule = itemDto.getTaxRuleId() != null
-                        ? taxRuleRepository.findByIdAndTenantId(itemDto.getTaxRuleId(), tenantId).orElse(null)
-                        : null;
+                        ? taxRuleRepository.findByIdAndTenantId(itemDto.getTaxRuleId(), tenantId).orElse(null) : null;
 
                 InvoiceItem invoiceItem = InvoiceItem.builder().tenantId(tenantId).invoice(invoice).item(item)
                         .variant(variant).quantity(itemDto.getQuantity()).unitPrice(itemDto.getUnitPrice())
@@ -214,10 +212,12 @@ public class InvoiceServiceImpl implements InvoiceService {
         dto.setVariantId(ii.getVariant() != null ? ii.getVariant().getId() : null);
         dto.setVariantName(ii.getVariant() != null ? ii.getVariant().getVariantName() : null);
         dto.setQuantity(ii.getQuantity());
-        
+
         // Calculate remaining quantity
-        BigDecimal returnedQty = returnItemRepository.sumReturnedQuantity(ii.getInvoice().getId(), ii.getItem().getId(), ii.getVariant() != null ? ii.getVariant().getId() : null);
-        if (returnedQty == null) returnedQty = BigDecimal.ZERO;
+        BigDecimal returnedQty = returnItemRepository.sumReturnedQuantity(ii.getInvoice().getId(), ii.getItem().getId(),
+                ii.getVariant() != null ? ii.getVariant().getId() : null);
+        if (returnedQty == null)
+            returnedQty = BigDecimal.ZERO;
         dto.setRemainingQuantity(ii.getQuantity().subtract(returnedQty));
 
         dto.setUnitPrice(ii.getUnitPrice());

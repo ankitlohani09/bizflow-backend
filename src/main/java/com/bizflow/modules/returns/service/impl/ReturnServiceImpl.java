@@ -94,15 +94,17 @@ public class ReturnServiceImpl implements ReturnService {
                         ? variantRepository.findByIdAndTenantId(itemDto.getVariantId(), tenantId).orElse(null) : null;
 
                 // Validate return quantity against invoice purchased quantity
-                BigDecimal alreadyReturned = returnItemRepository.sumReturnedQuantity(invoice.getId(), item.getId(), variant != null ? variant.getId() : null);
-                if (alreadyReturned == null) alreadyReturned = BigDecimal.ZERO;
+                BigDecimal alreadyReturned = returnItemRepository.sumReturnedQuantity(invoice.getId(), item.getId(),
+                        variant != null ? variant.getId() : null);
+                if (alreadyReturned == null)
+                    alreadyReturned = BigDecimal.ZERO;
 
                 // Find purchased quantity from invoice items
                 BigDecimal purchasedQty = BigDecimal.ZERO;
                 List<InvoiceItem> invoiceItems = invoiceItemRepository.findAllByInvoiceId(invoice.getId());
                 for (InvoiceItem ii : invoiceItems) {
-                    if (ii.getItem().getId().equals(item.getId()) && 
-                        (variant == null ? ii.getVariant() == null : ii.getVariant() != null && ii.getVariant().getId().equals(variant.getId()))) {
+                    if (ii.getItem().getId().equals(item.getId()) && (variant == null ? ii.getVariant() == null
+                            : ii.getVariant() != null && ii.getVariant().getId().equals(variant.getId()))) {
                         purchasedQty = ii.getQuantity();
                         break;
                     }
@@ -114,7 +116,9 @@ public class ReturnServiceImpl implements ReturnService {
 
                 BigDecimal remainingQty = purchasedQty.subtract(alreadyReturned);
                 if (itemDto.getQuantity().compareTo(remainingQty) > 0) {
-                    throw new IllegalArgumentException("Cannot return more than remaining quantity. Purchased: " + purchasedQty + ", Already Returned: " + alreadyReturned + ", Requested: " + itemDto.getQuantity());
+                    throw new IllegalArgumentException("Cannot return more than remaining quantity. Purchased: "
+                            + purchasedQty + ", Already Returned: " + alreadyReturned + ", Requested: "
+                            + itemDto.getQuantity());
                 }
 
                 ReturnItem returnItem = ReturnItem.builder().tenantId(tenantId).returnRef(ret).item(item)
@@ -136,9 +140,11 @@ public class ReturnServiceImpl implements ReturnService {
         dto.setInvoiceNumber(r.getInvoice() != null ? r.getInvoice().getInvoiceNumber() : null);
         dto.setReturnNumber(r.getReturnNumber());
         dto.setCustomerName(r.getCustomerName() != null ? r.getCustomerName()
-                : (r.getInvoice() != null && r.getInvoice().getCustomer() != null ? r.getInvoice().getCustomer().getName() : null));
+                : (r.getInvoice() != null && r.getInvoice().getCustomer() != null
+                        ? r.getInvoice().getCustomer().getName() : null));
         dto.setCustomerPhone(r.getCustomerPhone() != null ? r.getCustomerPhone()
-                : (r.getInvoice() != null && r.getInvoice().getCustomer() != null ? r.getInvoice().getCustomer().getPhone() : null));
+                : (r.getInvoice() != null && r.getInvoice().getCustomer() != null
+                        ? r.getInvoice().getCustomer().getPhone() : null));
         dto.setTotalRefund(r.getTotalRefund());
         dto.setPaymentModeId(r.getPaymentMode() != null ? r.getPaymentMode().getId() : null);
         dto.setPaymentModeName(r.getPaymentMode() != null ? r.getPaymentMode().getName() : null);

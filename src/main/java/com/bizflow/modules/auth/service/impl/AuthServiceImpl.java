@@ -67,14 +67,10 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(MessageConstant.ACCOUNT_DISABLED, HttpStatus.FORBIDDEN);
 
         List<String> roles = userRoleRepository.findRoleNamesByUserId(user.getId());
-        
+
         List<Role> roleEntities = roleRepository.findByTenantIdAndNameIn(user.getTenantId(), roles);
-        List<String> permissions = roleEntities.stream()
-                .map(Role::getPermissions)
-                .filter(Objects::nonNull)
-                .flatMap(p -> Arrays.stream(p.split(",")))
-                .distinct()
-                .toList();
+        List<String> permissions = roleEntities.stream().map(Role::getPermissions).filter(Objects::nonNull)
+                .flatMap(p -> Arrays.stream(p.split(","))).distinct().toList();
 
         Tenant tenant = tenantRepository.findById(user.getTenantId()).orElse(null);
         String tenantCode = tenant != null ? tenant.getCode() : null;
@@ -84,9 +80,11 @@ public class AuthServiceImpl implements AuthService {
 
         LoginResponse response = LoginResponse.builder().token(accessToken).refreshToken(refreshToken)
                 .userId(user.getId()).tenantId(user.getTenantId()).tenantCode(tenantCode).name(user.getName())
-                .email(user.getEmail()).roles(roles).permissions(permissions).profilePictureUrl(user.getProfilePictureUrl()).build();
+                .email(user.getEmail()).roles(roles).permissions(permissions)
+                .profilePictureUrl(user.getProfilePictureUrl()).build();
 
-        activityLogService.log(user.getTenantId(), user.getId(), "LOGIN", "USER", user.getId(), "User logged in successfully", null);
+        activityLogService.log(user.getTenantId(), user.getId(), "LOGIN", "USER", user.getId(),
+                "User logged in successfully", null);
 
         return ApiResponse.success(MessageConstant.LOGIN_SUCCESS, response);
     }
@@ -113,14 +111,10 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(MessageConstant.ACCOUNT_DISABLED, HttpStatus.FORBIDDEN);
 
         List<String> roles = userRoleRepository.findRoleNamesByUserId(userId);
-        
+
         List<Role> roleEntities = roleRepository.findByTenantIdAndNameIn(tenantId, roles);
-        List<String> permissions = roleEntities.stream()
-                .map(Role::getPermissions)
-                .filter(Objects::nonNull)
-                .flatMap(p -> Arrays.stream(p.split(",")))
-                .distinct()
-                .toList();
+        List<String> permissions = roleEntities.stream().map(Role::getPermissions).filter(Objects::nonNull)
+                .flatMap(p -> Arrays.stream(p.split(","))).distinct().toList();
 
         Tenant tenant = tenantRepository.findById(tenantId).orElse(null);
         String tenantCode = tenant != null ? tenant.getCode() : null;

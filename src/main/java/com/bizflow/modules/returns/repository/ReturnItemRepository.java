@@ -13,5 +13,6 @@ public interface ReturnItemRepository extends JpaRepository<ReturnItem, Long> {
     List<ReturnItem> findAllByReturnRefId(Long returnId);
 
     @Query("SELECT SUM(ri.quantity) FROM ReturnItem ri WHERE ri.returnRef.invoice.id = :invoiceId AND ri.item.id = :itemId AND (:variantId IS NULL OR ri.variant.id = :variantId)")
-    BigDecimal sumReturnedQuantity(@Param("invoiceId") Long invoiceId, @Param("itemId") Long itemId, @Param("variantId") Long variantId);
+    BigDecimal sumReturnedQuantity(@Param("invoiceId") Long invoiceId, @Param("itemId") Long itemId,
+            @Param("variantId") Long variantId);
 }

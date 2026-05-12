@@ -38,9 +38,7 @@ public class RbacService {
         }
 
         List<Role> roleEntities = roleRepository.findByTenantIdAndNameIn(tenantId, roles);
-        return roleEntities.stream()
-                .map(Role::getPermissions)
-                .filter(Objects::nonNull)
+        return roleEntities.stream().map(Role::getPermissions).filter(Objects::nonNull)
                 .flatMap(p -> Arrays.stream(p.split(",")))
                 .anyMatch(p -> p.equals(requiredPermission) || p.equals("ALL"));
     }

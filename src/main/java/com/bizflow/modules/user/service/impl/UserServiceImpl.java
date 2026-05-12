@@ -123,7 +123,8 @@ public class UserServiceImpl implements UserService {
             // User updating themselves -> Require current password if updating password
             if (request.getPassword() != null && !request.getPassword().isBlank()) {
                 if (request.getCurrentPassword() == null || request.getCurrentPassword().isBlank()) {
-                    throw new BusinessException("Current password is required to change password", HttpStatus.BAD_REQUEST);
+                    throw new BusinessException("Current password is required to change password",
+                            HttpStatus.BAD_REQUEST);
                 }
                 if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
                     throw new BusinessException("Incorrect current password", HttpStatus.BAD_REQUEST);

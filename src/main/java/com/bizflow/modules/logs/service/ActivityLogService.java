@@ -14,5 +14,6 @@ public interface ActivityLogService {
 
     void log(String action, String entityType, Long entityId, String description, String ipAddress);
 
-    void log(Long tenantId, Long userId, String action, String entityType, Long entityId, String description, String ipAddress);
+    void log(Long tenantId, Long userId, String action, String entityType, Long entityId, String description,
+            String ipAddress);
 }

@@ -90,17 +90,17 @@ public class PurchaseServiceImpl implements PurchaseService {
                 purchaseItemRepository.save(purchaseItem);
 
                 // Stock IN movement
-                    StockMovementDto movDto = new StockMovementDto();
-                    movDto.setItemId(item.getId());
-                    movDto.setVariantId(variant != null ? variant.getId() : null);
-                    movDto.setMovementType(MovementType.PURCHASE);
-                    movDto.setDirection(MovementDirection.IN);
-                    movDto.setQuantity(itemDto.getQuantity());
-                    movDto.setBatchNo(itemDto.getBatchNo());
-                    movDto.setExpiryDate(itemDto.getExpiryDate());
-                    movDto.setReferenceType("PURCHASE");
-                    movDto.setReferenceId(purchase.getId());
-                    stockMovementService.create(movDto);
+                StockMovementDto movDto = new StockMovementDto();
+                movDto.setItemId(item.getId());
+                movDto.setVariantId(variant != null ? variant.getId() : null);
+                movDto.setMovementType(MovementType.PURCHASE);
+                movDto.setDirection(MovementDirection.IN);
+                movDto.setQuantity(itemDto.getQuantity());
+                movDto.setBatchNo(itemDto.getBatchNo());
+                movDto.setExpiryDate(itemDto.getExpiryDate());
+                movDto.setReferenceType("PURCHASE");
+                movDto.setReferenceId(purchase.getId());
+                stockMovementService.create(movDto);
             }
         }
 

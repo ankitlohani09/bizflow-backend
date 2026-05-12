@@ -41,14 +41,16 @@ public class ReturnController {
     @Operation(summary = "Approve return")
     @PostMapping("/{id}/approve")
     @PreAuthorize("@rbac.hasPermission('RETURN_WRITE')")
-    public ResponseEntity<ApiResponse<ReturnDto>> approve(@PathVariable Long id, @RequestParam(required = false) java.math.BigDecimal overrideRefund) {
+    public ResponseEntity<ApiResponse<ReturnDto>> approve(@PathVariable Long id,
+            @RequestParam(required = false) java.math.BigDecimal overrideRefund) {
         return ResponseEntity.ok(returnService.approve(id, overrideRefund));
     }
 
     @Operation(summary = "Reject return")
     @PostMapping("/{id}/reject")
     @PreAuthorize("@rbac.hasPermission('RETURN_WRITE')")
-    public ResponseEntity<ApiResponse<ReturnDto>> reject(@PathVariable Long id, @RequestParam(required = false) String reason) {
+    public ResponseEntity<ApiResponse<ReturnDto>> reject(@PathVariable Long id,
+            @RequestParam(required = false) String reason) {
         return ResponseEntity.ok(returnService.reject(id, reason));
     }
 }
