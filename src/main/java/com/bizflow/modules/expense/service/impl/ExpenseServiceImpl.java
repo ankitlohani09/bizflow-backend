@@ -50,14 +50,24 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public ApiResponse<ExpenseDto> create(ExpenseDto dto) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
 
         ExpenseCategory category = dto.getCategoryId() != null
                 ? categoryRepository.findByIdAndTenantId(dto.getCategoryId(), tenantId).orElse(null) : null;
 
-        PaymentMode paymentMode = paymentModeRepository.findByIdAndTenantId(dto.getPaymentModeId(), tenantId)
-                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
+        PaymentMode paymentMode = null;
+        if (dto.getPaymentModeId() != null) {
+            paymentMode = paymentModeRepository.findByIdAndTenantId(dto.getPaymentModeId(), tenantId)
+                    .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
+        } else if (dto.getPaymentModeName() != null) {
+            paymentMode = paymentModeRepository.findByNameAndTenantId(dto.getPaymentModeName(), tenantId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Payment mode not found: " + dto.getPaymentModeName()));
+        } else {
+            paymentMode = paymentModeRepository.findByNameAndTenantId("CASH", tenantId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Default payment mode CASH not found"));
+        }
 
         Expense expense = Expense.builder().tenantId(tenantId).category(category).title(dto.getTitle())
                 .amount(dto.getAmount()).expenseDate(dto.getExpenseDate()).paymentMode(paymentMode)
@@ -67,6 +77,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public ApiResponse<ExpenseDto> update(Long id, ExpenseDto dto) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Expense expense = expenseRepository.findByIdAndTenantId(id, tenantId)
@@ -75,8 +86,17 @@ public class ExpenseServiceImpl implements ExpenseService {
         ExpenseCategory category = dto.getCategoryId() != null
                 ? categoryRepository.findByIdAndTenantId(dto.getCategoryId(), tenantId).orElse(null) : null;
 
-        PaymentMode paymentMode = paymentModeRepository.findByIdAndTenantId(dto.getPaymentModeId(), tenantId)
-                .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
+        PaymentMode paymentMode = null;
+        if (dto.getPaymentModeId() != null) {
+            paymentMode = paymentModeRepository.findByIdAndTenantId(dto.getPaymentModeId(), tenantId)
+                    .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
+        } else if (dto.getPaymentModeName() != null) {
+            paymentMode = paymentModeRepository.findByNameAndTenantId(dto.getPaymentModeName(), tenantId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Payment mode not found: " + dto.getPaymentModeName()));
+        } else {
+            paymentMode = paymentModeRepository.findByNameAndTenantId("CASH", tenantId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Default payment mode CASH not found"));
+        }
 
         expense.setCategory(category);
         expense.setTitle(dto.getTitle());
@@ -89,6 +109,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public ApiResponse<Void> delete(Long id) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Expense expense = expenseRepository.findByIdAndTenantId(id, tenantId)

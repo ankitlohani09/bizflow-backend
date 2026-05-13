@@ -10,4 +10,6 @@ public interface PaymentModeRepository extends JpaRepository<PaymentMode, Long> 
     List<PaymentMode> findAllByTenantIdAndIsActive(Long tenantId, Boolean isActive);
 
     Optional<PaymentMode> findByIdAndTenantId(Long id, Long tenantId);
+
+    Optional<PaymentMode> findByNameAndTenantId(String name, Long tenantId);
 }

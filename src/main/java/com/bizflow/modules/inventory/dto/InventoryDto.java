@@ -22,6 +22,9 @@ public class InventoryDto {
     private BigDecimal reservedQty;
     private BigDecimal sellingPrice;
     private BigDecimal costPrice;
+    private BigDecimal taxRate;
+    private Long taxRuleId;
+    private String taxRuleName;
     private BigDecimal lowStockThreshold;
     private Boolean lowStock;
     private String batchNo;

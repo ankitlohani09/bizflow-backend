@@ -137,7 +137,8 @@ public class InvoiceServiceImpl implements InvoiceService {
             }
         }
 
-        if (dto.getPayments() != null) {
+        if (dto.getPayments() != null && !dto.getPayments().isEmpty()) {
+            BigDecimal totalPaid = BigDecimal.ZERO;
             for (PaymentDto payDto : dto.getPayments()) {
                 PaymentMode paymentMode = paymentModeRepository.findByIdAndTenantId(payDto.getPaymentModeId(), tenantId)
                         .orElseThrow(() -> new ResourceNotFoundException("Payment mode " + MessageConstant.NOT_FOUND));
@@ -145,7 +146,13 @@ public class InvoiceServiceImpl implements InvoiceService {
                         .amount(payDto.getAmount()).referenceNo(payDto.getReferenceNo()).paidAt(LocalDateTime.now())
                         .build();
                 paymentRepository.save(payment);
+                totalPaid = totalPaid.add(payDto.getAmount());
             }
+            invoice.setPaidAmount(totalPaid);
+            if (totalPaid.compareTo(invoice.getGrandTotal()) > 0) {
+                invoice.setChangeAmount(totalPaid.subtract(invoice.getGrandTotal()));
+            }
+            invoiceRepository.save(invoice);
         }
 
         return ApiResponse.success(MessageConstant.INVOICE_CREATED, toDto(invoice));

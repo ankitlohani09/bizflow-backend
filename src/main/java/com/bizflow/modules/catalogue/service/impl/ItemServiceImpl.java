@@ -109,7 +109,12 @@ public class ItemServiceImpl implements ItemService {
         item.setBarcode(dto.getBarcode());
         item.setSellingPrice(dto.getSellingPrice());
         item.setCostPrice(dto.getCostPrice());
-        item.setTaxRate(dto.getTaxRate());
+        
+        if (taxRule != null && (dto.getTaxRate() == null || dto.getTaxRate().compareTo(BigDecimal.ZERO) == 0)) {
+            item.setTaxRate(taxRule.getRate());
+        } else {
+            item.setTaxRate(dto.getTaxRate() != null ? dto.getTaxRate() : BigDecimal.ZERO);
+        }
         item.setHasVariants(dto.getHasVariants());
         item.setIsActive(dto.getIsActive());
         return item;
