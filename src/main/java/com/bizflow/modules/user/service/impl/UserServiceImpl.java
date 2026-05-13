@@ -5,7 +5,9 @@ import com.bizflow.common.constant.MessageConstant;
 import com.bizflow.common.exception.BusinessException;
 import com.bizflow.common.exception.ResourceNotFoundException;
 import com.bizflow.common.utility.FileStorageService;
+import com.bizflow.modules.auth.entity.PasswordResetToken;
 import com.bizflow.modules.role.entity.Role;
+import com.bizflow.modules.tenant.entity.Tenant;
 import com.bizflow.modules.user.entity.User;
 import com.bizflow.modules.user.entity.UserRole;
 import com.bizflow.modules.role.repository.RoleRepository;
@@ -17,6 +19,7 @@ import com.bizflow.modules.auth.repository.PasswordResetTokenRepository;
 import com.bizflow.modules.email.service.EmailService;
 import com.bizflow.modules.tenant.repository.TenantRepository;
 import com.bizflow.modules.user.service.UserService;
+import com.bizflow.modules.logs.service.ActivityLogService;
 import com.bizflow.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +43,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final FileStorageService fileStorageService;
     private final EmailService emailService;
+    private final ActivityLogService activityLogService;
 
     @Override
     public ApiResponse<List<UserResponse>> getAllUsers() {
@@ -66,7 +71,7 @@ public class UserServiceImpl implements UserService {
 
         // If password is not provided, generate a random one as a placeholder
         String password = (request.getPassword() != null && !request.getPassword().isBlank()) ? request.getPassword()
-                : java.util.UUID.randomUUID().toString();
+                : UUID.randomUUID().toString();
 
         User user = User.builder().tenantId(tenantId).name(request.getName()).email(request.getEmail())
                 .password(passwordEncoder.encode(password)).phone(request.getPhone()).isActive(request.getIsActive())
@@ -77,11 +82,11 @@ public class UserServiceImpl implements UserService {
         assignRoles(tenantId, user.getId(), request.getRoleIds());
 
         // Generate onboarding/reset token
-        String token = java.util.UUID.randomUUID().toString();
-        com.bizflow.modules.auth.entity.PasswordResetToken resetToken = com.bizflow.modules.auth.entity.PasswordResetToken
-                .builder().token(token).user(user).expiryDate(java.time.LocalDateTime.now().plusDays(7)) // Onboarding
-                                                                                                         // link valid
-                                                                                                         // for 7 days
+        String token = UUID.randomUUID().toString();
+        PasswordResetToken resetToken = PasswordResetToken.builder().token(token).user(user)
+                .expiryDate(LocalDateTime.now().plusDays(7)) // Onboarding
+                                                             // link valid
+                                                             // for 7 days
                 .build();
         tokenRepository.save(resetToken);
 
@@ -90,7 +95,9 @@ public class UserServiceImpl implements UserService {
         try {
             // We'll need TenantRepository to get the actual company name
             // For now, using "BizFlow" or fetching it if repository is available
-            companyName = tenantRepository.findById(tenantId).map(t -> t.getName()).orElse("BizFlow");
+            if (tenantId != null) {
+                companyName = tenantRepository.findById(tenantId).map(Tenant::getName).orElse("BizFlow");
+            }
         } catch (Exception e) {
             // Fallback to BizFlow
         }
@@ -121,7 +128,8 @@ public class UserServiceImpl implements UserService {
             // User updating themselves -> Require current password if updating password
             if (request.getPassword() != null && !request.getPassword().isBlank()) {
                 if (request.getCurrentPassword() == null || request.getCurrentPassword().isBlank()) {
-                    throw new BusinessException("Current password is required to change password", HttpStatus.BAD_REQUEST);
+                    throw new BusinessException("Current password is required to change password",
+                            HttpStatus.BAD_REQUEST);
                 }
                 if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
                     throw new BusinessException("Incorrect current password", HttpStatus.BAD_REQUEST);
@@ -131,6 +139,7 @@ public class UserServiceImpl implements UserService {
 
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
+            activityLogService.log("UPDATE_PASSWORD", "USER", user.getId(), "User updated password", null);
         }
 
         user = userRepository.save(user);

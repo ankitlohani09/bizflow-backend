@@ -1,6 +1,6 @@
 -- ============================================
 -- V1__init.sql
--- BizFlow Complete Database Schema
+-- BizFlow Complete Database Schema (Cleaned)
 -- Target DB: bizflow_db
 -- ============================================
 
@@ -10,19 +10,25 @@ USE bizflow_db;
 -- TENANTS
 CREATE TABLE tenants
 (
-    id            BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id     BIGINT       NULL,
-    name          VARCHAR(150) NOT NULL,
-    code          VARCHAR(100) NOT NULL UNIQUE,
-    email         VARCHAR(200) NOT NULL,
-    phone         VARCHAR(20)  NULL,
-    address       TEXT         NULL,
-    business_type VARCHAR(100) NULL,
-    is_active     BOOLEAN      DEFAULT TRUE,
-    created_at    DATETIME     DEFAULT CURRENT_TIMESTAMP,
-    updated_at    DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by    VARCHAR(100) DEFAULT NULL,
-    updated_by    VARCHAR(100) DEFAULT NULL
+    id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id           BIGINT       NULL,
+    name                VARCHAR(150) NOT NULL,
+    code                VARCHAR(100) NOT NULL UNIQUE,
+    email               VARCHAR(200) NOT NULL,
+    phone               VARCHAR(20)  NULL,
+    address             TEXT         NULL,
+    business_type       VARCHAR(100) NULL,
+    is_active           BOOLEAN      DEFAULT TRUE,
+    is_gps_mandatory    BOOLEAN      DEFAULT FALSE,
+    is_selfie_mandatory BOOLEAN      DEFAULT FALSE,
+    subscription_plan   VARCHAR(50)  DEFAULT 'TRIAL',
+    expiry_date         DATETIME     NULL,
+    max_users          INT          DEFAULT 5,
+    is_kitchen_enabled  BOOLEAN      NOT NULL DEFAULT FALSE,
+    created_at          DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at          DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by          VARCHAR(100) DEFAULT NULL,
+    updated_by          VARCHAR(100) DEFAULT NULL
 );
 
 -- ROLES
@@ -32,6 +38,7 @@ CREATE TABLE roles
     tenant_id   BIGINT       NOT NULL,
     name        VARCHAR(80)  NOT NULL,
     description VARCHAR(300) NULL,
+    permissions TEXT         NULL,
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (tenant_id) REFERENCES tenants (id),
     UNIQUE KEY unique_role_per_tenant (name, tenant_id)
@@ -40,17 +47,18 @@ CREATE TABLE roles
 -- USERS
 CREATE TABLE users
 (
-    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id  BIGINT       NOT NULL,
-    name       VARCHAR(150) NOT NULL,
-    email      VARCHAR(200) NOT NULL,
-    password   VARCHAR(255) NOT NULL,
-    phone      VARCHAR(20)  NULL,
-    is_active  BOOLEAN      DEFAULT TRUE,
-    created_at DATETIME     DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by VARCHAR(100) DEFAULT NULL,
-    updated_by VARCHAR(100) DEFAULT NULL,
+    id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id           BIGINT       NOT NULL,
+    name                VARCHAR(150) NOT NULL,
+    email               VARCHAR(200) NOT NULL,
+    password            VARCHAR(255) NOT NULL,
+    phone               VARCHAR(20)  NULL,
+    profile_picture_url VARCHAR(255) NULL,
+    is_active           BOOLEAN      DEFAULT TRUE,
+    created_at          DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at          DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by          VARCHAR(100) DEFAULT NULL,
+    updated_by          VARCHAR(100) DEFAULT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants (id),
     UNIQUE KEY unique_email_per_tenant (email, tenant_id)
 );
@@ -74,6 +82,7 @@ CREATE TABLE categories
     tenant_id  BIGINT       NOT NULL,
     name       VARCHAR(150) NOT NULL,
     parent_id  BIGINT       NULL,
+    is_active  BOOLEAN      DEFAULT TRUE,
     created_at DATETIME     DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     created_by VARCHAR(100) DEFAULT NULL,
@@ -96,6 +105,23 @@ CREATE TABLE units
     FOREIGN KEY (tenant_id) REFERENCES tenants (id)
 );
 
+-- TAX RULES
+CREATE TABLE tax_rules
+(
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id   BIGINT       NOT NULL,
+    name        VARCHAR(100) NOT NULL,
+    rate        DECIMAL(5, 2) NOT NULL DEFAULT 0.00,
+    tax_type    VARCHAR(50)  NOT NULL DEFAULT 'GST',
+    description VARCHAR(255) NULL,
+    is_active   BOOLEAN      DEFAULT TRUE,
+    created_at  DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by  VARCHAR(100) DEFAULT NULL,
+    updated_by  VARCHAR(100) DEFAULT NULL,
+    FOREIGN KEY (tenant_id) REFERENCES tenants (id)
+);
+
 -- ITEMS
 CREATE TABLE items
 (
@@ -103,6 +129,7 @@ CREATE TABLE items
     tenant_id       BIGINT                     NOT NULL,
     category_id     BIGINT                     NULL,
     unit_id         BIGINT                     NULL,
+    tax_rule_id     BIGINT                     NULL,
     name            VARCHAR(200)               NOT NULL,
     type            ENUM ('PRODUCT','SERVICE') NOT NULL DEFAULT 'PRODUCT',
     description     TEXT                       NULL,
@@ -111,7 +138,6 @@ CREATE TABLE items
     cost_price      DECIMAL(12, 2)             NULL,
     tax_rate        DECIMAL(5, 2)                       DEFAULT 0.00,
     has_variants    BOOLEAN                             DEFAULT FALSE,
-    track_inventory BOOLEAN                             DEFAULT TRUE,
     is_active       BOOLEAN                             DEFAULT TRUE,
     created_at      DATETIME                            DEFAULT CURRENT_TIMESTAMP,
     updated_at      DATETIME                            DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -119,7 +145,8 @@ CREATE TABLE items
     updated_by      VARCHAR(100)                        DEFAULT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants (id),
     FOREIGN KEY (category_id) REFERENCES categories (id),
-    FOREIGN KEY (unit_id) REFERENCES units (id)
+    FOREIGN KEY (unit_id) REFERENCES units (id),
+    FOREIGN KEY (tax_rule_id) REFERENCES tax_rules (id)
 );
 
 -- ITEM VARIANTS
@@ -149,11 +176,15 @@ CREATE TABLE inventory
     tenant_id           BIGINT         NOT NULL,
     item_id             BIGINT         NOT NULL,
     variant_id          BIGINT         NULL,
+    batch_no            VARCHAR(50)    NULL,
+    expiry_date         DATETIME       NULL,
     available_qty       DECIMAL(12, 3) NOT NULL DEFAULT 0.000,
     damaged_qty         DECIMAL(12, 3) NOT NULL DEFAULT 0.000,
     expired_qty         DECIMAL(12, 3) NOT NULL DEFAULT 0.000,
     reserved_qty        DECIMAL(12, 3) NOT NULL DEFAULT 0.000,
     low_stock_threshold DECIMAL(12, 3) NULL,
+    mrp                 DECIMAL(14, 2) DEFAULT 0.00,
+    location            VARCHAR(100)   NULL,
     created_at          DATETIME                DEFAULT CURRENT_TIMESTAMP,
     updated_at          DATETIME                DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     created_by          VARCHAR(100)            DEFAULT NULL,
@@ -221,6 +252,7 @@ CREATE TABLE customers
     state           VARCHAR(100) NULL,
     pincode         VARCHAR(20)  NULL,
     gstin           VARCHAR(20)  NULL,
+    loyalty_points  INT          DEFAULT 0,
     opening_balance DECIMAL(14, 2) DEFAULT 0.00,
     is_active       BOOLEAN        DEFAULT TRUE,
     created_at      DATETIME       DEFAULT CURRENT_TIMESTAMP,
@@ -280,6 +312,7 @@ CREATE TABLE invoice_items
     invoice_id   BIGINT         NOT NULL,
     item_id      BIGINT         NOT NULL,
     variant_id   BIGINT         NULL,
+    tax_rule_id  BIGINT         NULL,
     quantity     DECIMAL(12, 3) NOT NULL,
     unit_price   DECIMAL(12, 2) NOT NULL,
     discount_pct DECIMAL(5, 2) DEFAULT 0.00,
@@ -292,7 +325,8 @@ CREATE TABLE invoice_items
     FOREIGN KEY (tenant_id) REFERENCES tenants (id),
     FOREIGN KEY (invoice_id) REFERENCES invoices (id),
     FOREIGN KEY (item_id) REFERENCES items (id),
-    FOREIGN KEY (variant_id) REFERENCES item_variants (id)
+    FOREIGN KEY (variant_id) REFERENCES item_variants (id),
+    FOREIGN KEY (tax_rule_id) REFERENCES tax_rules (id)
 );
 
 -- PAYMENTS
@@ -363,21 +397,23 @@ CREATE TABLE purchase_items
 -- RETURNS
 CREATE TABLE returns
 (
-    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tenant_id      BIGINT                            NOT NULL,
-    invoice_id     BIGINT                            NULL,
-    return_number  VARCHAR(60)                       NOT NULL,
-    customer_name  VARCHAR(200)                      NULL,
-    customer_phone VARCHAR(20)                       NULL,
-    total_refund   DECIMAL(14, 2)                    NOT NULL DEFAULT 0.00,
-    refund_mode    ENUM ('CASH','UPI','CREDIT_NOTE') NOT NULL,
-    reason         TEXT                              NULL,
-    created_at     DATETIME                                   DEFAULT CURRENT_TIMESTAMP,
-    updated_at     DATETIME                                   DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    created_by     VARCHAR(100)                               DEFAULT NULL,
-    updated_by     VARCHAR(100)                               DEFAULT NULL,
+    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id       BIGINT                            NOT NULL,
+    invoice_id      BIGINT                            NULL,
+    return_number   VARCHAR(60)                       NOT NULL,
+    customer_name   VARCHAR(200)                      NULL,
+    customer_phone  VARCHAR(20)                       NULL,
+    total_refund    DECIMAL(14, 2)                    NOT NULL DEFAULT 0.00,
+    payment_mode_id BIGINT                            NULL,
+    status          VARCHAR(20)                       NOT NULL DEFAULT 'PENDING',
+    reason          TEXT                              NULL,
+    created_at      DATETIME                                   DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME                                   DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by      VARCHAR(100)                               DEFAULT NULL,
+    updated_by      VARCHAR(100)                               DEFAULT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants (id),
     FOREIGN KEY (invoice_id) REFERENCES invoices (id),
+    FOREIGN KEY (payment_mode_id) REFERENCES payment_modes (id),
     UNIQUE KEY unique_return_per_tenant (return_number, tenant_id)
 );
 
@@ -448,6 +484,7 @@ CREATE TABLE staff
     role       VARCHAR(100)   NULL,
     salary     DECIMAL(12, 2) NULL,
     join_date  DATE           NULL,
+    pin        VARCHAR(4)     NULL,
     is_active  BOOLEAN      DEFAULT TRUE,
     created_at DATETIME     DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -466,6 +503,8 @@ CREATE TABLE attendance
     status     ENUM ('PRESENT','ABSENT','HALF_DAY','LEAVE') NOT NULL,
     check_in   TIME                                         NULL,
     check_out  TIME                                         NULL,
+    photo_url  VARCHAR(255)                                 NULL,
+    location   VARCHAR(255)                                 NULL,
     notes      TEXT                                         NULL,
     created_at DATETIME     DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -530,9 +569,7 @@ CREATE TABLE ai_logs
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
-
--- Additional feature tables (merged from old V2)
-
+-- WHITE LABEL SETTINGS
 CREATE TABLE white_label_settings
 (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -551,6 +588,7 @@ CREATE TABLE white_label_settings
     FOREIGN KEY (tenant_id) REFERENCES tenants (id)
 );
 
+-- KITCHEN ORDERS
 CREATE TABLE kitchen_orders
 (
     id            BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -569,6 +607,7 @@ CREATE TABLE kitchen_orders
     FOREIGN KEY (tenant_id) REFERENCES tenants (id)
 );
 
+-- KITCHEN ORDER ITEMS
 CREATE TABLE kitchen_order_items
 (
     id               BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -590,7 +629,50 @@ CREATE TABLE kitchen_order_items
     FOREIGN KEY (variant_id) REFERENCES item_variants (id)
 );
 
--- Additional schema alignment (merged from old V3)
+-- PASSWORD RESET TOKENS
+CREATE TABLE password_reset_tokens (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    user_id BIGINT NOT NULL,
+    expiry_date DATETIME NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
 
-ALTER TABLE customers
-    ADD COLUMN loyalty_points INT DEFAULT 0 AFTER gstin;
+-- STAFF BIOMETRICS
+CREATE TABLE staff_biometrics (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    staff_id BIGINT NOT NULL,
+    tenant_id BIGINT NOT NULL,
+    credential_id TEXT NOT NULL,
+    public_key TEXT NOT NULL,
+    sign_count BIGINT DEFAULT 0,
+    created_by VARCHAR(255) NULL,
+    updated_by VARCHAR(255) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_staff_biometric (staff_id),
+    CONSTRAINT fk_biometric_staff FOREIGN KEY (staff_id) REFERENCES staff(id) ON DELETE CASCADE
+);
+
+-- =============================================
+-- Data Initialization
+-- =============================================
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- Ensure one default tenant exists
+INSERT INTO tenants (name, code, email, is_active)
+SELECT 'BizFlow', 'BIZFLOW', 'admin@bizflow.com', TRUE
+WHERE NOT EXISTS (SELECT 1 FROM tenants);
+
+-- Ensure ADMIN role exists
+INSERT INTO roles (tenant_id, name, description, permissions)
+SELECT t.id, 'ADMIN', 'System administrator', 'ALL'
+FROM tenants t
+WHERE t.id = (SELECT MIN(id) FROM tenants)
+  AND NOT EXISTS (SELECT 1
+                  FROM roles r
+                  WHERE r.tenant_id = t.id
+                    AND r.name = 'ADMIN');
+
+SET FOREIGN_KEY_CHECKS = 1;

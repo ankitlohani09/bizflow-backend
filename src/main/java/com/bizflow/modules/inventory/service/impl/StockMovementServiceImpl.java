@@ -3,6 +3,7 @@ package com.bizflow.modules.inventory.service.impl;
 import com.bizflow.common.ApiResponse;
 import com.bizflow.common.constant.MessageConstant;
 import com.bizflow.common.enums.MovementDirection;
+import com.bizflow.common.enums.ConditionType;
 import com.bizflow.common.exception.ResourceNotFoundException;
 import com.bizflow.modules.catalogue.entity.Item;
 import com.bizflow.modules.catalogue.entity.ItemVariant;
@@ -84,8 +85,14 @@ public class StockMovementServiceImpl implements StockMovementService {
                                 .availableQty(java.math.BigDecimal.ZERO).damagedQty(java.math.BigDecimal.ZERO)
                                 .expiredQty(java.math.BigDecimal.ZERO).reservedQty(java.math.BigDecimal.ZERO).build());
 
-        if (dto.getDirection() == MovementDirection.IN) {
-            inventory.setAvailableQty(inventory.getAvailableQty().add(dto.getQuantity()));
+        if (direction == MovementDirection.IN) {
+            if (dto.getConditionType() == ConditionType.DAMAGED) {
+                inventory.setDamagedQty(inventory.getDamagedQty().add(dto.getQuantity()));
+            } else if (dto.getConditionType() == ConditionType.EXPIRED) {
+                inventory.setExpiredQty(inventory.getExpiredQty().add(dto.getQuantity()));
+            } else {
+                inventory.setAvailableQty(inventory.getAvailableQty().add(dto.getQuantity()));
+            }
         } else {
             // Guard: prevent negative stock
             if (inventory.getAvailableQty().compareTo(dto.getQuantity()) < 0) {

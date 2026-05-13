@@ -25,5 +25,7 @@ public class Role {
 
     private String description;
 
+    private String permissions;
+
     private LocalDateTime createdAt;
 }

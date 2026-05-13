@@ -27,4 +27,5 @@ public class TenantRequest {
     private Integer maxUsers;
     private Boolean isGpsMandatory = false;
     private Boolean isSelfieMandatory = false;
+    private Boolean isKitchenEnabled = false;
 }

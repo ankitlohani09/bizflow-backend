@@ -22,7 +22,6 @@ public class ItemDto {
     private Long taxRuleId;
     private String taxRuleName;
     private Boolean hasVariants;
-    private Boolean trackInventory;
     private Boolean isActive;
     private String batchNo;
     private java.time.LocalDateTime expiryDate;

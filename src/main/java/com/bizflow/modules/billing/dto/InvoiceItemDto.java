@@ -12,6 +12,7 @@ public class InvoiceItemDto {
     private Long variantId;
     private String variantName;
     private BigDecimal quantity;
+    private BigDecimal remainingQuantity;
     private BigDecimal unitPrice;
     private BigDecimal discountPct;
     private BigDecimal taxRate;

@@ -1,6 +1,6 @@
 package com.bizflow.modules.returns.dto;
 
-import com.bizflow.common.enums.RefundMode;
+import com.bizflow.common.enums.ReturnStatus;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -16,8 +16,10 @@ public class ReturnDto {
     private String customerName;
     private String customerPhone;
     private BigDecimal totalRefund;
-    private RefundMode refundMode;
+    private Long paymentModeId;
+    private String paymentModeName;
     private String reason;
+    private ReturnStatus status;
     private String createdBy;
     private LocalDateTime createdAt;
     private List<ReturnItemDto> items;

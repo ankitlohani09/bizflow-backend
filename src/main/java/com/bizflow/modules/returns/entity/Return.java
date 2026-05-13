@@ -1,8 +1,9 @@
 package com.bizflow.modules.returns.entity;
 
 import com.bizflow.common.BaseEntity;
-import com.bizflow.common.enums.RefundMode;
+import com.bizflow.modules.billing.entity.PaymentMode;
 import com.bizflow.modules.billing.entity.Invoice;
+import com.bizflow.common.enums.ReturnStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -35,8 +36,12 @@ public class Return extends BaseEntity {
     private BigDecimal totalRefund;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "refund_mode", nullable = false)
-    private RefundMode refundMode;
+    @Column(name = "status", nullable = false, length = 20)
+    private ReturnStatus status;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_mode_id")
+    private PaymentMode paymentMode;
 
     @Column(name = "reason", columnDefinition = "TEXT")
     private String reason;

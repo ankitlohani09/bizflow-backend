@@ -20,7 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/customers")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'USER')")
+@PreAuthorize("isAuthenticated()")
 public class CustomerController {
 
     private final CustomerService customerService;
@@ -30,6 +30,7 @@ public class CustomerController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Customers fetched"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized") })
     @GetMapping
+    @PreAuthorize("@rbac.hasPermission('CUSTOMER_READ')")
     public ResponseEntity<ApiResponse<List<CustomerResponse>>> getAllCustomers() {
         return ResponseEntity.ok(customerService.getAllCustomers());
     }
@@ -39,6 +40,7 @@ public class CustomerController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Customer found"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Not found") })
     @GetMapping("/{id}")
+    @PreAuthorize("@rbac.hasPermission('CUSTOMER_READ')")
     public ResponseEntity<ApiResponse<CustomerResponse>> getCustomerById(
             @Parameter(description = "Customer ID", required = true) @PathVariable Long id) {
         return ResponseEntity.ok(customerService.getCustomerById(id));
@@ -50,7 +52,7 @@ public class CustomerController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validation error"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "Already exists") })
     @PostMapping
-    @PreAuthorize("hasAnyRole('OWNER', 'MANAGER')")
+    @PreAuthorize("@rbac.hasPermission('CUSTOMER_WRITE')")
     public ResponseEntity<ApiResponse<CustomerResponse>> createCustomer(@Valid @RequestBody CustomerRequest request) {
         return ResponseEntity.ok(customerService.createCustomer(request));
     }
@@ -60,7 +62,7 @@ public class CustomerController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Customer updated"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Not found") })
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('OWNER', 'MANAGER')")
+    @PreAuthorize("@rbac.hasPermission('CUSTOMER_WRITE')")
     public ResponseEntity<ApiResponse<CustomerResponse>> updateCustomer(
             @Parameter(description = "Customer ID", required = true) @PathVariable Long id,
             @Valid @RequestBody CustomerRequest request) {
@@ -72,7 +74,7 @@ public class CustomerController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Customer deleted"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Not found") })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("@rbac.hasPermission('CUSTOMER_DELETE')")
     public ResponseEntity<ApiResponse<Void>> deleteCustomer(
             @Parameter(description = "Customer ID", required = true) @PathVariable Long id) {
         return ResponseEntity.ok(customerService.deleteCustomer(id));

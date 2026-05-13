@@ -5,23 +5,51 @@ import com.bizflow.modules.logs.dto.ActivityLogDto;
 import com.bizflow.modules.logs.entity.ActivityLog;
 import com.bizflow.modules.logs.repository.ActivityLogRepository;
 import com.bizflow.modules.logs.service.ActivityLogService;
+import com.bizflow.modules.user.entity.User;
+import com.bizflow.modules.user.repository.UserRepository;
+import com.bizflow.modules.user.repository.UserRoleRepository;
 import com.bizflow.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ActivityLogServiceImpl implements ActivityLogService {
 
     private final ActivityLogRepository activityLogRepository;
+    private final UserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
 
     @Override
     public ApiResponse<List<ActivityLogDto>> getAll() {
         Long tenantId = SecurityUtils.getCurrentTenantId();
-        return ApiResponse.success(activityLogRepository.findAllByTenantIdOrderByCreatedAtDesc(tenantId).stream()
-                .map(this::toDto).toList());
+        List<ActivityLog> logs = activityLogRepository.findAllByTenantIdOrderByCreatedAtDesc(tenantId);
+
+        List<Long> userIds = logs.stream().map(ActivityLog::getUserId).filter(Objects::nonNull).distinct().toList();
+        List<User> users = userRepository.findAllById(userIds);
+        Map<Long, User> userMap = users.stream()
+                .collect(Collectors.toMap(com.bizflow.modules.user.entity.User::getId, u -> u));
+
+        return ApiResponse.success(logs.stream().map(log -> {
+            ActivityLogDto dto = toDto(log);
+            User user = userMap.get(log.getUserId());
+            if (user != null) {
+                dto.setUserName(user.getName());
+                List<String> roles = userRoleRepository.findRoleNamesByUserId(user.getId());
+                if (!roles.isEmpty()) {
+                    dto.setUserRole(roles.getFirst());
+                }
+            }
+            return dto;
+        }).toList());
     }
 
     @Override
@@ -44,9 +72,44 @@ public class ActivityLogServiceImpl implements ActivityLogService {
     public void log(String action, String entityType, Long entityId, String description, String ipAddress) {
         Long tenantId = SecurityUtils.getCurrentTenantId();
         Long userId = SecurityUtils.getCurrentUserId();
+
+        if (ipAddress == null) {
+            ipAddress = getClientIp();
+        }
+
         ActivityLog log = ActivityLog.builder().tenantId(tenantId).userId(userId).action(action).entityType(entityType)
                 .entityId(entityId).description(description).ipAddress(ipAddress).build();
         activityLogRepository.save(log);
+    }
+
+    @Override
+    public void log(Long tenantId, Long userId, String action, String entityType, Long entityId, String description,
+            String ipAddress) {
+        if (ipAddress == null) {
+            ipAddress = getClientIp();
+        }
+
+        ActivityLog log = ActivityLog.builder().tenantId(tenantId).userId(userId).action(action).entityType(entityType)
+                .entityId(entityId).description(description).ipAddress(ipAddress).build();
+        activityLogRepository.save(log);
+    }
+
+    private String getClientIp() {
+        try {
+            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder
+                    .getRequestAttributes();
+            if (attributes != null) {
+                HttpServletRequest request = attributes.getRequest();
+                String ip = request.getHeader("X-Forwarded-For");
+                if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+                    ip = request.getRemoteAddr();
+                }
+                return ip;
+            }
+        } catch (Exception e) {
+            // Fallback
+        }
+        return "N/A";
     }
 
     private ActivityLogDto toDto(ActivityLog a) {

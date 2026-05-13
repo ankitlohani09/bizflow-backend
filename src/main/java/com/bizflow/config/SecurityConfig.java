@@ -52,7 +52,7 @@ public class SecurityConfig {
 
                         // ✅ Customers
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/customers/**").hasRole("OWNER")
-                        .requestMatchers("/api/v1/customers/**").hasAnyRole("OWNER", "MANAGER", "USER")
+                        .requestMatchers("/api/v1/customers/**").hasAnyRole("OWNER", "MANAGER", "CASHIER")
 
                         // ✅ Categories
                         .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").authenticated()
@@ -73,13 +73,13 @@ public class SecurityConfig {
                         // ✅ Invoices + Returns
                         .requestMatchers(HttpMethod.GET, "/api/v1/invoices/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/returns/**").authenticated()
-                        .requestMatchers("/api/v1/invoices/**").hasAnyRole("OWNER", "MANAGER", "USER")
-                        .requestMatchers("/api/v1/returns/**").hasAnyRole("OWNER", "MANAGER", "USER")
+                        .requestMatchers("/api/v1/invoices/**").hasAnyRole("OWNER", "MANAGER", "CASHIER")
+                        .requestMatchers("/api/v1/returns/**").hasAnyRole("OWNER", "MANAGER", "CASHIER")
 
                         // ✅ Kitchen Orders (Restaurant)
                         .requestMatchers(HttpMethod.GET, "/api/v1/kitchen-orders/**").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/kitchen-orders/**").hasAnyRole("OWNER", "MANAGER")
-                        .requestMatchers("/api/v1/kitchen-orders/**").hasAnyRole("OWNER", "MANAGER", "USER")
+                        .requestMatchers("/api/v1/kitchen-orders/**").hasAnyRole("OWNER", "MANAGER", "CASHIER")
 
                         // ✅ Purchases
                         .requestMatchers("/api/v1/purchases/**").hasAnyRole("OWNER", "MANAGER")

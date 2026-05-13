@@ -23,6 +23,7 @@ public class TenantResponse {
     private Integer maxUsers;
     private Boolean isGpsMandatory;
     private Boolean isSelfieMandatory;
+    private Boolean isKitchenEnabled;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

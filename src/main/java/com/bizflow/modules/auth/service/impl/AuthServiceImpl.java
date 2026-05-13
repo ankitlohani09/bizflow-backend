@@ -14,8 +14,11 @@ import com.bizflow.modules.auth.entity.PasswordResetToken;
 import com.bizflow.modules.email.service.EmailService;
 import com.bizflow.modules.tenant.repository.TenantRepository;
 import com.bizflow.modules.tenant.entity.Tenant;
+import com.bizflow.modules.logs.service.ActivityLogService;
 import com.bizflow.modules.auth.service.AuthService;
 import com.bizflow.security.JwtService;
+import com.bizflow.modules.role.repository.RoleRepository;
+import com.bizflow.modules.role.entity.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,6 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.Arrays;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -34,9 +39,11 @@ public class AuthServiceImpl implements AuthService {
     private final UserRoleRepository userRoleRepository;
     private final PasswordResetTokenRepository tokenRepository;
     private final TenantRepository tenantRepository;
+    private final RoleRepository roleRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final ActivityLogService activityLogService;
 
     @Override
     public ApiResponse<LoginResponse> login(LoginRequest request) {
@@ -60,6 +67,11 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(MessageConstant.ACCOUNT_DISABLED, HttpStatus.FORBIDDEN);
 
         List<String> roles = userRoleRepository.findRoleNamesByUserId(user.getId());
+
+        List<Role> roleEntities = roleRepository.findByTenantIdAndNameIn(user.getTenantId(), roles);
+        List<String> permissions = roleEntities.stream().map(Role::getPermissions).filter(Objects::nonNull)
+                .flatMap(p -> Arrays.stream(p.split(","))).distinct().toList();
+
         Tenant tenant = tenantRepository.findById(user.getTenantId()).orElse(null);
         String tenantCode = tenant != null ? tenant.getCode() : null;
 
@@ -68,7 +80,11 @@ public class AuthServiceImpl implements AuthService {
 
         LoginResponse response = LoginResponse.builder().token(accessToken).refreshToken(refreshToken)
                 .userId(user.getId()).tenantId(user.getTenantId()).tenantCode(tenantCode).name(user.getName())
-                .email(user.getEmail()).roles(roles).profilePictureUrl(user.getProfilePictureUrl()).build();
+                .email(user.getEmail()).roles(roles).permissions(permissions)
+                .profilePictureUrl(user.getProfilePictureUrl()).build();
+
+        activityLogService.log(user.getTenantId(), user.getId(), "LOGIN", "USER", user.getId(),
+                "User logged in successfully", null);
 
         return ApiResponse.success(MessageConstant.LOGIN_SUCCESS, response);
     }
@@ -95,6 +111,11 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(MessageConstant.ACCOUNT_DISABLED, HttpStatus.FORBIDDEN);
 
         List<String> roles = userRoleRepository.findRoleNamesByUserId(userId);
+
+        List<Role> roleEntities = roleRepository.findByTenantIdAndNameIn(tenantId, roles);
+        List<String> permissions = roleEntities.stream().map(Role::getPermissions).filter(Objects::nonNull)
+                .flatMap(p -> Arrays.stream(p.split(","))).distinct().toList();
+
         Tenant tenant = tenantRepository.findById(tenantId).orElse(null);
         String tenantCode = tenant != null ? tenant.getCode() : null;
 
@@ -102,7 +123,7 @@ public class AuthServiceImpl implements AuthService {
 
         LoginResponse response = LoginResponse.builder().token(newAccessToken).refreshToken(token).userId(userId)
                 .tenantId(tenantId).tenantCode(tenantCode).name(user.getName()).email(email).roles(roles)
-                .profilePictureUrl(user.getProfilePictureUrl()).build();
+                .permissions(permissions).profilePictureUrl(user.getProfilePictureUrl()).build();
 
         return ApiResponse.success(MessageConstant.TOKEN_REFRESHED, response);
     }

@@ -67,6 +67,9 @@ public class InventoryServiceImpl implements InventoryService {
         dto.setReservedQty(i.getReservedQty());
         dto.setSellingPrice(i.getItem().getSellingPrice());
         dto.setCostPrice(i.getItem().getCostPrice());
+        dto.setTaxRate(i.getItem().getTaxRate());
+        dto.setTaxRuleId(i.getItem().getTaxRule() != null ? i.getItem().getTaxRule().getId() : null);
+        dto.setTaxRuleName(i.getItem().getTaxRule() != null ? i.getItem().getTaxRule().getName() : null);
         dto.setLowStockThreshold(i.getLowStockThreshold());
         dto.setBatchNo(i.getBatchNo());
         dto.setExpiryDate(i.getExpiryDate());

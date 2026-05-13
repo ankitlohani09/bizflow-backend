@@ -109,9 +109,13 @@ public class ItemServiceImpl implements ItemService {
         item.setBarcode(dto.getBarcode());
         item.setSellingPrice(dto.getSellingPrice());
         item.setCostPrice(dto.getCostPrice());
-        item.setTaxRate(dto.getTaxRate());
+        
+        if (taxRule != null && (dto.getTaxRate() == null || dto.getTaxRate().compareTo(BigDecimal.ZERO) == 0)) {
+            item.setTaxRate(taxRule.getRate());
+        } else {
+            item.setTaxRate(dto.getTaxRate() != null ? dto.getTaxRate() : BigDecimal.ZERO);
+        }
         item.setHasVariants(dto.getHasVariants());
-        item.setTrackInventory(dto.getTrackInventory());
         item.setIsActive(dto.getIsActive());
         return item;
     }
@@ -133,7 +137,6 @@ public class ItemServiceImpl implements ItemService {
         dto.setTaxRuleId(i.getTaxRule() != null ? i.getTaxRule().getId() : null);
         dto.setTaxRuleName(i.getTaxRule() != null ? i.getTaxRule().getName() : null);
         dto.setHasVariants(i.getHasVariants());
-        dto.setTrackInventory(i.getTrackInventory());
         dto.setIsActive(i.getIsActive());
 
         // Note: Initial batch/expiry might be linked to the default inventory record

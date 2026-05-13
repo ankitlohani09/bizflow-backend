@@ -44,4 +44,7 @@ public class Tenant extends BaseEntity {
 
     @Builder.Default
     private Boolean isSelfieMandatory = false;
+
+    @Builder.Default
+    private Boolean isKitchenEnabled = false;
 }
