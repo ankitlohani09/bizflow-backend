@@ -14,13 +14,14 @@ import com.bizflow.modules.expense.service.ExpenseService;
 import com.bizflow.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@org.springframework.transaction.annotation.Transactional(readOnly = true)
+@Transactional(readOnly = true)
 public class ExpenseServiceImpl implements ExpenseService {
 
     private final ExpenseRepository expenseRepository;
@@ -62,8 +63,8 @@ public class ExpenseServiceImpl implements ExpenseService {
             paymentMode = paymentModeRepository.findByIdAndTenantId(dto.getPaymentModeId(), tenantId)
                     .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
         } else if (dto.getPaymentModeName() != null) {
-            paymentMode = paymentModeRepository.findByNameAndTenantId(dto.getPaymentModeName(), tenantId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Payment mode not found: " + dto.getPaymentModeName()));
+            paymentMode = paymentModeRepository.findByNameAndTenantId(dto.getPaymentModeName(), tenantId).orElseThrow(
+                    () -> new ResourceNotFoundException("Payment mode not found: " + dto.getPaymentModeName()));
         } else {
             paymentMode = paymentModeRepository.findByNameAndTenantId("CASH", tenantId)
                     .orElseThrow(() -> new ResourceNotFoundException("Default payment mode CASH not found"));
@@ -91,8 +92,8 @@ public class ExpenseServiceImpl implements ExpenseService {
             paymentMode = paymentModeRepository.findByIdAndTenantId(dto.getPaymentModeId(), tenantId)
                     .orElseThrow(() -> new ResourceNotFoundException(MessageConstant.NOT_FOUND));
         } else if (dto.getPaymentModeName() != null) {
-            paymentMode = paymentModeRepository.findByNameAndTenantId(dto.getPaymentModeName(), tenantId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Payment mode not found: " + dto.getPaymentModeName()));
+            paymentMode = paymentModeRepository.findByNameAndTenantId(dto.getPaymentModeName(), tenantId).orElseThrow(
+                    () -> new ResourceNotFoundException("Payment mode not found: " + dto.getPaymentModeName()));
         } else {
             paymentMode = paymentModeRepository.findByNameAndTenantId("CASH", tenantId)
                     .orElseThrow(() -> new ResourceNotFoundException("Default payment mode CASH not found"));

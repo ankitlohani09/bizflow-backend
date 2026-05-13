@@ -24,6 +24,7 @@ public class TenantResponse {
     private Boolean isGpsMandatory;
     private Boolean isSelfieMandatory;
     private Boolean isKitchenEnabled;
+    private String timezone;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

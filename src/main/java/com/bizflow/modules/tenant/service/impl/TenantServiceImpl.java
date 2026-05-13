@@ -76,7 +76,8 @@ public class TenantServiceImpl implements TenantService {
                 .expiryDate(
                         request.getExpiryDate() != null ? request.getExpiryDate() : LocalDateTime.now().plusMonths(1))
                 .maxUsers(request.getMaxUsers() != null ? request.getMaxUsers() : 5)
-                .isGpsMandatory(request.getIsGpsMandatory()).isSelfieMandatory(request.getIsSelfieMandatory()).build();
+                .isGpsMandatory(request.getIsGpsMandatory()).isSelfieMandatory(request.getIsSelfieMandatory())
+                .timezone(request.getTimezone() != null ? request.getTimezone() : "Asia/Kolkata").build();
 
         tenant = tenantRepository.save(tenant);
         Long tenantId = tenant.getId();
@@ -135,6 +136,9 @@ public class TenantServiceImpl implements TenantService {
         tenant.setIsGpsMandatory(request.getIsGpsMandatory());
         tenant.setIsSelfieMandatory(request.getIsSelfieMandatory());
         tenant.setIsKitchenEnabled(request.getIsKitchenEnabled());
+        if (request.getTimezone() != null) {
+            tenant.setTimezone(request.getTimezone());
+        }
 
         activityLogService.log("UPDATE_TENANT", "TENANT", tenant.getId(), "Tenant settings updated", null);
 
@@ -211,7 +215,7 @@ public class TenantServiceImpl implements TenantService {
                 .phone(t.getPhone()).address(t.getAddress()).businessType(t.getBusinessType()).isActive(t.getIsActive())
                 .subscriptionPlan(t.getSubscriptionPlan()).expiryDate(t.getExpiryDate()).maxUsers(t.getMaxUsers())
                 .isGpsMandatory(t.getIsGpsMandatory()).isSelfieMandatory(t.getIsSelfieMandatory())
-                .isKitchenEnabled(t.getIsKitchenEnabled()).createdAt(t.getCreatedAt()).updatedAt(t.getUpdatedAt())
-                .build();
+                .isKitchenEnabled(t.getIsKitchenEnabled()).timezone(t.getTimezone()).createdAt(t.getCreatedAt())
+                .updatedAt(t.getUpdatedAt()).build();
     }
 }

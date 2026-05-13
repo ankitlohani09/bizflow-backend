@@ -75,7 +75,7 @@ public class ItemServiceImpl implements ItemService {
         // Sync batch/expiry to inventory if provided
         List<Inventory> invs = inventoryRepository.findAllByItemIdAndTenantId(savedItem.getId(), tenantId);
         if (!invs.isEmpty()) {
-            Inventory primary = invs.get(0);
+            Inventory primary = invs.getFirst();
             primary.setBatchNo(dto.getBatchNo());
             primary.setExpiryDate(dto.getExpiryDate());
             inventoryRepository.save(primary);
@@ -109,7 +109,7 @@ public class ItemServiceImpl implements ItemService {
         item.setBarcode(dto.getBarcode());
         item.setSellingPrice(dto.getSellingPrice());
         item.setCostPrice(dto.getCostPrice());
-        
+
         if (taxRule != null && (dto.getTaxRate() == null || dto.getTaxRate().compareTo(BigDecimal.ZERO) == 0)) {
             item.setTaxRate(taxRule.getRate());
         } else {
@@ -144,7 +144,7 @@ public class ItemServiceImpl implements ItemService {
         List<Inventory> invs = inventoryRepository.findAllByItemIdAndTenantId(i.getId(),
                 SecurityUtils.getCurrentTenantId());
         if (!invs.isEmpty()) {
-            Inventory primary = invs.get(0);
+            Inventory primary = invs.getFirst();
             dto.setBatchNo(primary.getBatchNo());
             dto.setExpiryDate(primary.getExpiryDate());
         }

@@ -47,4 +47,7 @@ public class Tenant extends BaseEntity {
 
     @Builder.Default
     private Boolean isKitchenEnabled = false;
+
+    @Builder.Default
+    private String timezone = "Asia/Kolkata";
 }

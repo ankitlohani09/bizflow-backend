@@ -58,7 +58,7 @@ logging:
 
 # Storage Configuration
 storage:
-  type: local # change to 'azure' for cloud storage
+  type: azure # change to 'azure' for cloud storage
 
 # Azure/Cloud Settings (Used if storage.type is 'azure')
 AWS_CONNECTION_STRING: ${AWS_CONNECTION_STRING:}
