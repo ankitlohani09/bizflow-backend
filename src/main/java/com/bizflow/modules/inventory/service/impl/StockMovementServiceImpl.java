@@ -15,6 +15,7 @@ import com.bizflow.modules.inventory.entity.StockMovement;
 import com.bizflow.modules.inventory.repository.InventoryRepository;
 import com.bizflow.modules.inventory.repository.StockMovementRepository;
 import com.bizflow.modules.inventory.service.StockMovementService;
+import com.bizflow.modules.user.repository.UserRepository;
 import com.bizflow.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class StockMovementServiceImpl implements StockMovementService {
     private final InventoryRepository inventoryRepository;
     private final ItemRepository itemRepository;
     private final ItemVariantRepository variantRepository;
+    private final UserRepository userRepository;
 
     @Override
     public ApiResponse<List<StockMovementDto>> getAll() {
@@ -123,6 +125,9 @@ public class StockMovementServiceImpl implements StockMovementService {
         dto.setExpiryDate(m.getExpiryDate());
         dto.setNotes(m.getNotes());
         dto.setCreatedBy(m.getCreatedBy());
+        if (m.getCreatedBy() != null) {
+            userRepository.findByEmail(m.getCreatedBy()).ifPresent(u -> dto.setCreatedBy(u.getName()));
+        }
         dto.setCreatedAt(m.getCreatedAt());
         return dto;
     }
