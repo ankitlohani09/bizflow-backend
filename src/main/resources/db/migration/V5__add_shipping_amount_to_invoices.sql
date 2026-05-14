@@ -1,0 +1,1 @@
+ALTER TABLE invoices ADD COLUMN shipping_amount DECIMAL(14,2) DEFAULT 0.00;

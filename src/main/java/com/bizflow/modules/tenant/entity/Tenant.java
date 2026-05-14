@@ -1,6 +1,6 @@
 package com.bizflow.modules.tenant.entity;
 
-import com.bizflow.common.BaseEntity;
+import com.bizflow.common.AuditableEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -12,7 +12,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class Tenant extends BaseEntity {
+public class Tenant extends AuditableEntity {
 
     @Column(nullable = false, unique = true)
     private String name;

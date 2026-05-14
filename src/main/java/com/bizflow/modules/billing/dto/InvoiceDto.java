@@ -19,12 +19,14 @@ public class InvoiceDto {
     private BigDecimal subtotal;
     private BigDecimal discountAmount;
     private BigDecimal taxAmount;
+    private BigDecimal shippingAmount;
     private BigDecimal grandTotal;
     private BigDecimal paidAmount;
     private BigDecimal changeAmount;
     private PaymentStatus paymentStatus;
     private String notes;
     private String createdBy;
+    private String cashierName;
     private LocalDateTime createdAt;
     private List<InvoiceItemDto> items;
     private List<PaymentDto> payments;

@@ -68,6 +68,21 @@ public class WhiteLabelSettingsServiceImpl implements WhiteLabelSettingsService 
         return ApiResponse.success("Logo uploaded successfully", toDto(saved));
     }
 
+    @Override
+    public ApiResponse<WhiteLabelSettingsDto> deleteLogo() {
+        Long tenantId = SecurityUtils.getCurrentTenantId();
+        WhiteLabelSettings settings = whiteLabelSettingsRepository.findByTenantId(tenantId).orElseThrow(
+                () -> new com.bizflow.common.exception.ResourceNotFoundException("WhiteLabelSettings", tenantId));
+
+        if (settings.getLogoUrl() != null) {
+            fileStorageService.deleteFile(settings.getLogoUrl());
+            settings.setLogoUrl(null);
+            whiteLabelSettingsRepository.save(settings);
+        }
+
+        return ApiResponse.success("Logo removed successfully", toDto(settings));
+    }
+
     private WhiteLabelSettingsDto toDto(WhiteLabelSettings entity) {
         WhiteLabelSettingsDto dto = new WhiteLabelSettingsDto();
         dto.setId(entity.getId());

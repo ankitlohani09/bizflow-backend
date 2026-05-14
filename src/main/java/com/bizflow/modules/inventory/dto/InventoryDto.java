@@ -13,6 +13,7 @@ public class InventoryDto {
     private com.bizflow.common.enums.ItemType type;
     private String name;
     private String barcode;
+    private String sku;
     private String categoryName;
     private Long variantId;
     private String variantName;

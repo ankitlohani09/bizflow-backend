@@ -47,6 +47,10 @@ public class Invoice extends BaseEntity {
     @Column(name = "tax_amount", precision = 14, scale = 2)
     private BigDecimal taxAmount = BigDecimal.ZERO;
 
+    @Builder.Default
+    @Column(name = "shipping_amount", precision = 14, scale = 2)
+    private BigDecimal shippingAmount = BigDecimal.ZERO;
+
     @Column(name = "grand_total", nullable = false, precision = 14, scale = 2)
     private BigDecimal grandTotal;
 
@@ -65,4 +69,6 @@ public class Invoice extends BaseEntity {
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 
+    @Column(name = "cashier_name", length = 150)
+    private String cashierName;
 }

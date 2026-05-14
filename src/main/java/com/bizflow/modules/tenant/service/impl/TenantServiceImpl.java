@@ -69,7 +69,7 @@ public class TenantServiceImpl implements TenantService {
         }
 
         // 1. Save Tenant
-        Tenant tenant = Tenant.builder().tenantId(1L).name(request.getName()).code(request.getCode().toUpperCase())
+        Tenant tenant = Tenant.builder().name(request.getName()).code(request.getCode().toUpperCase())
                 .email(request.getEmail()).phone(request.getPhone()).address(request.getAddress())
                 .businessType(request.getBusinessType()).isActive(request.getIsActive())
                 .subscriptionPlan(request.getSubscriptionPlan() != null ? request.getSubscriptionPlan() : "TRIAL")

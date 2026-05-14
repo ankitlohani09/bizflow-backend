@@ -10,4 +10,6 @@ public interface WhiteLabelSettingsService {
     ApiResponse<WhiteLabelSettingsDto> updateCurrentSettings(WhiteLabelSettingsDto request);
 
     ApiResponse<WhiteLabelSettingsDto> updateLogo(MultipartFile file);
+
+    ApiResponse<WhiteLabelSettingsDto> deleteLogo();
 }

@@ -6,6 +6,7 @@ import com.bizflow.modules.catalogue.entity.ItemVariant;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import java.time.LocalDate;
 
 import java.math.BigDecimal;
 
@@ -48,6 +49,12 @@ public class InvoiceItem extends BaseEntity {
     @JoinColumn(name = "tax_rule_id")
     private TaxRule taxRule;
 
-    @Column(name = "line_total", nullable = false, precision = 14, scale = 2)
-    private BigDecimal lineTotal;
+    @Column(name = "batch_no", length = 100)
+    private String batchNo;
+
+    @Column(name = "expiry_date")
+    private LocalDate expiryDate;
+
+    @Column(name = "subtotal", nullable = false, precision = 14, scale = 2)
+    private BigDecimal subtotal;
 }

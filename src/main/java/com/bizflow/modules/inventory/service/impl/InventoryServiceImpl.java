@@ -58,6 +58,7 @@ public class InventoryServiceImpl implements InventoryService {
         dto.setType(i.getItem().getType());
         dto.setName(i.getItem().getName());
         dto.setBarcode(i.getItem().getBarcode());
+        dto.setSku(i.getVariant() != null ? i.getVariant().getSku() : null);
         dto.setCategoryName(i.getItem().getCategory() != null ? i.getItem().getCategory().getName() : null);
         dto.setVariantId(i.getVariant() != null ? i.getVariant().getId() : null);
         dto.setVariantName(i.getVariant() != null ? i.getVariant().getVariantName() : null);

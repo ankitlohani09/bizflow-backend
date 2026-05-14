@@ -18,5 +18,7 @@ public class InvoiceItemDto {
     private BigDecimal taxRate;
     private Long taxRuleId;
     private String taxRuleName;
-    private BigDecimal lineTotal;
+    private String batchNo;
+    private java.time.LocalDate expiryDate;
+    private BigDecimal subtotal;
 }

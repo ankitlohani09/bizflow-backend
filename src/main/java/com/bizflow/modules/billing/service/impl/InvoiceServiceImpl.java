@@ -22,6 +22,8 @@ import com.bizflow.modules.catalogue.repository.ItemRepository;
 import com.bizflow.modules.catalogue.repository.ItemVariantRepository;
 import com.bizflow.modules.customer.entity.Customer;
 import com.bizflow.modules.customer.repository.CustomerRepository;
+import com.bizflow.modules.user.entity.User;
+import com.bizflow.modules.user.repository.UserRepository;
 import com.bizflow.modules.inventory.dto.StockMovementDto;
 import com.bizflow.modules.inventory.service.StockMovementService;
 import com.bizflow.security.SecurityUtils;
@@ -34,6 +36,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -49,6 +52,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final PaymentModeRepository paymentModeRepository;
     private final CustomerRepository customerRepository;
     private final TaxRuleRepository taxRuleRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -75,15 +79,22 @@ public class InvoiceServiceImpl implements InvoiceService {
         long count = invoiceRepository.countByTenantId(tenantId) + 1;
         String invoiceNumber = "INV-" + String.format("%05d", count);
 
+        Long userId = SecurityUtils.getCurrentUserId();
+        User user = userRepository.findById(Objects.requireNonNull(userId))
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        String cashierName = user.getName();
+
         Invoice invoice = Invoice.builder().tenantId(tenantId).invoiceNumber(invoiceNumber)
                 .invoiceType(dto.getInvoiceType()).customerName(dto.getCustomerName())
                 .customerPhone(dto.getCustomerPhone()).subtotal(dto.getSubtotal())
                 .discountAmount(dto.getDiscountAmount() != null ? dto.getDiscountAmount() : BigDecimal.ZERO)
                 .taxAmount(dto.getTaxAmount() != null ? dto.getTaxAmount() : BigDecimal.ZERO)
-                .grandTotal(dto.getGrandTotal())
+                .shippingAmount(dto.getShippingAmount() != null ? dto.getShippingAmount() : BigDecimal.ZERO)
+                .grandTotal(dto.getGrandTotal() != null ? dto.getGrandTotal().setScale(0, RoundingMode.HALF_UP)
+                        : BigDecimal.ZERO)
                 .paidAmount(dto.getPaidAmount() != null ? dto.getPaidAmount() : BigDecimal.ZERO)
                 .changeAmount(dto.getChangeAmount() != null ? dto.getChangeAmount() : BigDecimal.ZERO)
-                .paymentStatus(dto.getPaymentStatus()).notes(dto.getNotes()).build();
+                .paymentStatus(dto.getPaymentStatus()).notes(dto.getNotes()).cashierName(cashierName).build();
 
         if (dto.getCustomerId() != null) {
             Customer customer = customerRepository.findByIdAndTenantId(dto.getCustomerId(), tenantId)
@@ -122,7 +133,8 @@ public class InvoiceServiceImpl implements InvoiceService {
                         .variant(variant).quantity(itemDto.getQuantity()).unitPrice(itemDto.getUnitPrice())
                         .discountPct(itemDto.getDiscountPct() != null ? itemDto.getDiscountPct() : BigDecimal.ZERO)
                         .taxRate(itemDto.getTaxRate() != null ? itemDto.getTaxRate() : BigDecimal.ZERO).taxRule(taxRule)
-                        .lineTotal(itemDto.getLineTotal()).build();
+                        .batchNo(itemDto.getBatchNo()).expiryDate(itemDto.getExpiryDate())
+                        .subtotal(itemDto.getSubtotal()).build();
                 invoiceItemRepository.save(invoiceItem);
 
                 StockMovementDto movDto = new StockMovementDto();
@@ -200,12 +212,14 @@ public class InvoiceServiceImpl implements InvoiceService {
         dto.setSubtotal(i.getSubtotal());
         dto.setDiscountAmount(i.getDiscountAmount());
         dto.setTaxAmount(i.getTaxAmount());
+        dto.setShippingAmount(i.getShippingAmount());
         dto.setGrandTotal(i.getGrandTotal());
         dto.setPaidAmount(i.getPaidAmount());
         dto.setChangeAmount(i.getChangeAmount());
         dto.setPaymentStatus(i.getPaymentStatus());
         dto.setNotes(i.getNotes());
         dto.setCreatedBy(i.getCreatedBy());
+        dto.setCashierName(i.getCashierName());
         dto.setCreatedAt(i.getCreatedAt());
         dto.setItems(invoiceItemRepository.findAllByInvoiceId(i.getId()).stream().map(this::toItemDto).toList());
         dto.setPayments(paymentRepository.findAllByInvoiceId(i.getId()).stream().map(this::toPaymentDto).toList());
@@ -233,7 +247,9 @@ public class InvoiceServiceImpl implements InvoiceService {
         dto.setTaxRate(ii.getTaxRate());
         dto.setTaxRuleId(ii.getTaxRule() != null ? ii.getTaxRule().getId() : null);
         dto.setTaxRuleName(ii.getTaxRule() != null ? ii.getTaxRule().getName() : null);
-        dto.setLineTotal(ii.getLineTotal());
+        dto.setBatchNo(ii.getBatchNo());
+        dto.setExpiryDate(ii.getExpiryDate());
+        dto.setSubtotal(ii.getSubtotal());
         return dto;
     }
 

@@ -235,7 +235,7 @@ public class ReportServiceImpl implements ReportService {
             Long key = item.getItem().getId();
             TopItemBucket bucket = map.computeIfAbsent(key, k -> new TopItemBucket(item.getItem().getName()));
             bucket.quantity = bucket.quantity.add(safe(item.getQuantity()));
-            bucket.revenue = bucket.revenue.add(safe(item.getLineTotal()));
+            bucket.revenue = bucket.revenue.add(safe(item.getSubtotal()));
         }
 
         return map.entrySet().stream().sorted((a, b) -> b.getValue().quantity.compareTo(a.getValue().quantity))

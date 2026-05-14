@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,13 +34,13 @@ public class SupplierController {
 
     @Operation(summary = "Create supplier")
     @PostMapping
-    public ResponseEntity<ApiResponse<SupplierDto>> create(@RequestBody SupplierDto dto) {
+    public ResponseEntity<ApiResponse<SupplierDto>> create(@Valid @RequestBody SupplierDto dto) {
         return ResponseEntity.ok(supplierService.create(dto));
     }
 
     @Operation(summary = "Update supplier")
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<SupplierDto>> update(@PathVariable Long id, @RequestBody SupplierDto dto) {
+    public ResponseEntity<ApiResponse<SupplierDto>> update(@PathVariable Long id, @Valid @RequestBody SupplierDto dto) {
         return ResponseEntity.ok(supplierService.update(id, dto));
     }
 
