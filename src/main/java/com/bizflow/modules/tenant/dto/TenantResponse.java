@@ -27,4 +27,6 @@ public class TenantResponse {
     private String timezone;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String onboardingToken;
+    private String onboardingUrl;
 }

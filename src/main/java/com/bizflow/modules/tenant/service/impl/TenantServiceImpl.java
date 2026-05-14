@@ -20,6 +20,7 @@ import com.bizflow.modules.user.repository.UserRoleRepository;
 import com.bizflow.modules.logs.service.ActivityLogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +47,9 @@ public class TenantServiceImpl implements TenantService {
     private final EmailService emailService;
     private final InvoiceRepository invoiceRepository;
     private final ActivityLogService activityLogService;
+
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
 
     @Override
     public ApiResponse<List<TenantResponse>> getAll() {
@@ -117,7 +121,12 @@ public class TenantServiceImpl implements TenantService {
         }
 
         log.info("Onboarding completed for tenant: {}", tenant.getName());
-        return ApiResponse.success("Tenant and Owner account created successfully", toResponse(tenant));
+
+        TenantResponse response = toResponse(tenant);
+        response.setOnboardingToken(token);
+        response.setOnboardingUrl(frontendUrl + "/reset-password?token=" + token);
+
+        return ApiResponse.success("Tenant and Owner account created successfully", response);
     }
 
     @Override
