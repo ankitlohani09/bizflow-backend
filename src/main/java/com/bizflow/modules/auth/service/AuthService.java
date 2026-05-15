@@ -13,4 +13,6 @@ public interface AuthService {
     ApiResponse<String> forgotPassword(String email);
 
     ApiResponse<String> resetPassword(String token, String newPassword);
+    
+    ApiResponse<Boolean> verifyResetToken(String token);
 }

@@ -25,6 +25,9 @@ public class EmailServiceImpl implements EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
+
     @Override
     @Async
     public void sendMail(String toEmail, String subject, String body) {
@@ -43,9 +46,10 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     @Async
-    public void sendOnboardingEmail(String to, String companyName) {
+    public void sendOnboardingEmail(String to, String companyName, String resetToken) {
         Context context = new Context();
         context.setVariable("companyName", companyName);
+        context.setVariable("resetUrl", frontendUrl + "/reset-password?token=" + resetToken);
 
         String body = templateEngine.process("onboarding-email", context);
 
@@ -57,12 +61,22 @@ public class EmailServiceImpl implements EmailService {
     public void sendPasswordResetEmail(String to, String resetToken) {
         Context context = new Context();
         context.setVariable("resetToken", resetToken);
-        // Assuming there will be a frontend URL for password reset
-        context.setVariable("resetUrl", "http://localhost:5173/reset-password?token=" + resetToken);
+        context.setVariable("resetUrl", frontendUrl + "/reset-password?token=" + resetToken);
 
         String body = templateEngine.process("password-reset-email", context);
 
         sendHtmlEmail(to, "BizFlow - Password Reset Request", body);
+    }
+
+    @Override
+    @Async
+    public void sendPasswordSetupEmail(String to, String resetToken) {
+        Context context = new Context();
+        context.setVariable("resetUrl", frontendUrl + "/reset-password?token=" + resetToken);
+
+        String body = templateEngine.process("password-setup-email", context);
+
+        sendHtmlEmail(to, "BizFlow - Activate Your Account", body);
     }
 
     private void sendHtmlEmail(String to, String subject, String htmlBody) {

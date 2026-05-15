@@ -103,9 +103,7 @@ public class UserServiceImpl implements UserService {
         }
 
         // Send Onboarding Email with "Set Password" link
-        // We use the reset password email template which already has the link logic
-        emailService.sendOnboardingEmail(user.getEmail(), companyName);
-        emailService.sendPasswordResetEmail(user.getEmail(), token);
+        emailService.sendOnboardingEmail(user.getEmail(), companyName, token);
 
         return ApiResponse.success("User created and onboarding email sent", toResponse(user));
     }

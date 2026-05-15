@@ -266,6 +266,7 @@ public class AiQueryServiceImpl implements AiQueryService {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private String callOllama(String query, String context, String type) {
         String url = "http://127.0.0.1:11434/api/generate";
         RestTemplate restTemplate = new RestTemplate();

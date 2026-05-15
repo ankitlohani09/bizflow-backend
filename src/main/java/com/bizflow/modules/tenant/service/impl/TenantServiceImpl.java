@@ -8,8 +8,7 @@ import com.bizflow.modules.tenant.dto.TenantResponse;
 import com.bizflow.modules.tenant.entity.Tenant;
 import com.bizflow.modules.tenant.repository.TenantRepository;
 import com.bizflow.modules.tenant.service.TenantService;
-import com.bizflow.modules.auth.entity.PasswordResetToken;
-import com.bizflow.modules.auth.repository.PasswordResetTokenRepository;
+import com.bizflow.modules.auth.service.PasswordResetService;
 import com.bizflow.modules.email.service.EmailService;
 import com.bizflow.modules.role.entity.Role;
 import com.bizflow.modules.role.repository.RoleRepository;
@@ -42,11 +41,11 @@ public class TenantServiceImpl implements TenantService {
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
-    private final PasswordResetTokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final InvoiceRepository invoiceRepository;
     private final ActivityLogService activityLogService;
+    private final PasswordResetService passwordResetService;
 
     @Value("${app.frontend-url}")
     private String frontendUrl;
@@ -107,17 +106,15 @@ public class TenantServiceImpl implements TenantService {
                 .assignedAt(LocalDateTime.now()).build());
 
         // 5. Send Onboarding Email (Password setup)
-        String token = UUID.randomUUID().toString();
-        PasswordResetToken resetToken = PasswordResetToken.builder().token(token).user(owner)
-                .expiryDate(LocalDateTime.now().plusDays(7)).build();
-        tokenRepository.save(resetToken);
+        // Note: PasswordResetService generates token, saves it, and sends the email
+        String token = passwordResetService.generateAndSendResetLink(owner, 168, true);
 
+        String onboardingUrl = frontendUrl + "/reset-password?token=" + token;
+        log.info("Onboarding URL for [{}]: {}", owner.getEmail(), onboardingUrl);
         try {
-            log.info("Sending onboarding emails to: {}. Token: {}", owner.getEmail(), token);
-            emailService.sendOnboardingEmail(owner.getEmail(), tenant.getName());
-            emailService.sendPasswordResetEmail(owner.getEmail(), token);
+            emailService.sendOnboardingEmail(owner.getEmail(), tenant.getName(), token);
         } catch (Exception e) {
-            log.error("Failed to trigger onboarding emails for: {}", owner.getEmail(), e);
+            log.error("Failed to trigger welcome email for: {}", owner.getEmail(), e);
         }
 
         log.info("Onboarding completed for tenant: {}", tenant.getName());
@@ -217,6 +214,25 @@ public class TenantServiceImpl implements TenantService {
                 .tenantGrowth(growth).revenueGrowth(revGrowth).build();
 
         return ApiResponse.success(stats);
+    }
+
+    @Override
+    @Transactional
+    public ApiResponse<String> regenerateResetLink(Long tenantId) {
+        Tenant tenant = tenantRepository.findById(tenantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Tenant", tenantId));
+
+        User owner = userRepository.findByEmail(tenant.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("Owner user not found for tenant email"));
+
+        String token = passwordResetService.generateAndSendResetLink(owner, 168, true);
+
+        emailService.sendPasswordResetEmail(owner.getEmail(), token);
+        
+        String resetUrl = frontendUrl + "/reset-password?token=" + token;
+        log.info("Regenerated Password Reset URL for [{}]: {}", owner.getEmail(), resetUrl);
+
+        return ApiResponse.success("Password setup link regenerated. URL: " + resetUrl, resetUrl);
     }
 
     private TenantResponse toResponse(Tenant t) {

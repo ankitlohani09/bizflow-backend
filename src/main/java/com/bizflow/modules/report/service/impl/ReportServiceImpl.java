@@ -48,12 +48,28 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public ApiResponse<Map<String, Object>> getDashboard(LocalDate fromDate, LocalDate toDate) {
-        DateRange range = resolveRange(fromDate, toDate, false);
         Long tenantId = SecurityUtils.getCurrentTenantId();
+        List<Invoice> salesInvoices;
+        List<Expense> expenses;
+        DateRange range;
 
-        List<Invoice> salesInvoices = findSalesInvoices(tenantId, range);
-        List<Expense> expenses = expenseRepository.findAllByTenantIdAndExpenseDateBetween(tenantId, range.from,
-                range.to);
+        if (fromDate == null && toDate == null) {
+            salesInvoices = invoiceRepository.findAllByTenantIdOrderByCreatedAtDesc(tenantId).stream()
+                    .filter(i -> i.getInvoiceType() == InvoiceType.SALE)
+                    .filter(i -> i.getPaymentStatus() != PaymentStatus.CANCELLED).toList();
+            expenses = expenseRepository.findAllByTenantIdOrderByExpenseDateDesc(tenantId);
+            
+            LocalDate minInvoiceDate = salesInvoices.stream().map(i -> i.getCreatedAt().toLocalDate()).min(LocalDate::compareTo).orElse(LocalDate.now());
+            LocalDate minExpenseDate = expenses.stream().map(Expense::getExpenseDate).min(LocalDate::compareTo).orElse(LocalDate.now());
+            LocalDate minDate = minInvoiceDate.isBefore(minExpenseDate) ? minInvoiceDate : minExpenseDate;
+            LocalDate maxDate = LocalDate.now();
+            
+            range = new DateRange(minDate, maxDate, minDate.atStartOfDay(), maxDate.atTime(LocalTime.MAX));
+        } else {
+            range = resolveRange(fromDate, toDate, false);
+            salesInvoices = findSalesInvoices(tenantId, range);
+            expenses = expenseRepository.findAllByTenantIdAndExpenseDateBetween(tenantId, range.from, range.to);
+        }
 
         BigDecimal totalSales = sumInvoices(salesInvoices);
         BigDecimal totalExpenses = sumExpenses(expenses);
@@ -89,6 +105,7 @@ public class ReportServiceImpl implements ReportService {
         data.put("totalInvoices", salesInvoices.size());
         data.put("pendingPayments", scale2(pendingPayments));
         data.put("lowStockItems", lowStockItems);
+        data.put("totalItems", inventoryList.size());
         data.put("totalInventoryValue", scale2(totalInventoryValue));
         data.put("topSellingItems", topSellingItems);
         data.put("salesChart", salesChart);
@@ -263,31 +280,51 @@ public class ReportServiceImpl implements ReportService {
         }
 
         List<Map<String, Object>> rows = new ArrayList<>();
-        for (LocalDate date = range.from; !date.isAfter(range.to); date = date.plusDays(1)) {
-            BigDecimal sale = salesByDate.getOrDefault(date, BigDecimal.ZERO);
-            BigDecimal exp = expenseByDate.getOrDefault(date, BigDecimal.ZERO);
-            BigDecimal profit = sale.subtract(exp);
+        long days = java.time.temporal.ChronoUnit.DAYS.between(range.from, range.to);
+        
+        if (days <= 90) {
+            for (LocalDate date = range.from; !date.isAfter(range.to); date = date.plusDays(1)) {
+                BigDecimal sale = salesByDate.getOrDefault(date, BigDecimal.ZERO);
+                BigDecimal exp = expenseByDate.getOrDefault(date, BigDecimal.ZERO);
+                BigDecimal profit = sale.subtract(exp);
 
-            Map<String, Object> row = new LinkedHashMap<>();
-            row.put("date", date.toString());
-            row.put("sales", scale2(sale));
-            row.put("expenses", scale2(exp));
-            row.put("profit", scale2(profit));
-            rows.add(row);
+                Map<String, Object> row = new LinkedHashMap<>();
+                row.put("date", date.toString());
+                row.put("sales", scale2(sale));
+                row.put("expenses", scale2(exp));
+                row.put("profit", scale2(profit));
+                rows.add(row);
+            }
+        } else {
+            Set<LocalDate> allDates = new TreeSet<>(salesByDate.keySet());
+            allDates.addAll(expenseByDate.keySet());
+            
+            for (LocalDate date : allDates) {
+                BigDecimal sale = salesByDate.getOrDefault(date, BigDecimal.ZERO);
+                BigDecimal exp = expenseByDate.getOrDefault(date, BigDecimal.ZERO);
+                BigDecimal profit = sale.subtract(exp);
+
+                Map<String, Object> row = new LinkedHashMap<>();
+                row.put("date", date.toString());
+                row.put("sales", scale2(sale));
+                row.put("expenses", scale2(exp));
+                row.put("profit", scale2(profit));
+                rows.add(row);
+            }
         }
         return rows;
     }
 
     private String groupKey(LocalDate date, ReportGroupBy groupBy) {
         return switch (groupBy) {
-        case DAY -> date.toString();
-        case WEEK -> {
-            WeekFields wf = WeekFields.of(DayOfWeek.MONDAY, 4);
-            int week = date.get(wf.weekOfWeekBasedYear());
-            int year = date.get(wf.weekBasedYear());
-            yield year + "-W" + String.format("%02d", week);
-        }
-        case MONTH -> date.getYear() + "-" + String.format("%02d", date.getMonthValue());
+            case DAY -> date.toString();
+            case WEEK -> {
+                WeekFields wf = WeekFields.of(DayOfWeek.MONDAY, 4);
+                int week = date.get(wf.weekOfWeekBasedYear());
+                int year = date.get(wf.weekBasedYear());
+                yield year + "-W" + String.format("%02d", week);
+            }
+            case MONTH -> date.getYear() + "-" + String.format("%02d", date.getMonthValue());
         };
     }
 

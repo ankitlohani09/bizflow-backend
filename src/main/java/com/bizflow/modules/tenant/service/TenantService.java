@@ -20,4 +20,6 @@ public interface TenantService {
     ApiResponse<com.bizflow.modules.tenant.dto.GlobalStatsResponse> getGlobalStats();
 
     ApiResponse<Void> delete(Long id);
+
+    ApiResponse<String> regenerateResetLink(Long tenantId);
 }

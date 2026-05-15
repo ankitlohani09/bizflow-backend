@@ -65,5 +65,5 @@ storage:
   type: azure # change to 'azure' for cloud storage
 
 # Azure/Cloud Settings (Used if storage.type is 'azure')
-AWS_CONNECTION_STRING: ${AWS_CONNECTION_STRING:}
-AWS_CONTAINER_NAME: ${AWS_CONTAINER_NAME:}
+AWS_CONNECTION_STRING: ${AWS_CONNECTION_STRING:none}
+AWS_CONTAINER_NAME: ${AWS_CONTAINER_NAME:none}

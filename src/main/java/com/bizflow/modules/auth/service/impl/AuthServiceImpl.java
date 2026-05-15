@@ -6,6 +6,7 @@ import com.bizflow.common.exception.BusinessException;
 import com.bizflow.modules.auth.dto.LoginRequest;
 import com.bizflow.modules.auth.dto.LoginResponse;
 import com.bizflow.modules.auth.dto.RefreshTokenRequest;
+import com.bizflow.modules.auth.service.PasswordResetService;
 import com.bizflow.modules.user.entity.User;
 import com.bizflow.modules.user.repository.UserRepository;
 import com.bizflow.modules.user.repository.UserRoleRepository;
@@ -44,10 +45,11 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final ActivityLogService activityLogService;
+    private final PasswordResetService passwordResetService;
 
     @Override
     public ApiResponse<LoginResponse> login(LoginRequest request) {
-        // ... (existing implementation)
+// ... omitting unchanged code below...
         User user;
         String identifier = request.getEmail(); // The 'email' field in LoginRequest might contain a phone number
 
@@ -134,18 +136,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("User not found with this email", HttpStatus.NOT_FOUND));
 
-        // Delete old tokens
-        tokenRepository.deleteByUser(user);
-
-        // Generate new token
-        String token = UUID.randomUUID().toString();
-        PasswordResetToken resetToken = PasswordResetToken.builder().token(token).user(user)
-                .expiryDate(LocalDateTime.now().plusHours(24)).build();
-
-        tokenRepository.save(resetToken);
-
-        // Send email
-        emailService.sendPasswordResetEmail(email, token);
+        passwordResetService.generateAndSendResetLink(user, 24, false);
 
         return ApiResponse.success("Password reset instructions sent to your email", null);
     }
@@ -168,5 +159,28 @@ public class AuthServiceImpl implements AuthService {
         tokenRepository.delete(resetToken);
 
         return ApiResponse.success("Password reset successful. You can now login.", null);
+    }
+
+    @Override
+    public ApiResponse<Boolean> verifyResetToken(String token) {
+        var resetTokenOpt = tokenRepository.findByToken(token);
+        
+        if (resetTokenOpt.isEmpty()) {
+            return ApiResponse.error("Invalid or used reset token", false);
+        }
+
+        PasswordResetToken resetToken = resetTokenOpt.get();
+
+        if (resetToken.isExpired()) {
+            // Safe to try delete, but wrap in try-catch in case of transaction issues
+            try {
+                tokenRepository.delete(resetToken);
+            } catch (Exception e) {
+                // Ignore delete failure on read-only validation
+            }
+            return ApiResponse.error("Reset token has expired", false);
+        }
+
+        return ApiResponse.success("Token is valid", true);
     }
 }

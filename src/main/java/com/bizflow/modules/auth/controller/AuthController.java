@@ -52,4 +52,10 @@ public class AuthController {
     public ResponseEntity<ApiResponse<String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         return ResponseEntity.ok(authService.resetPassword(request.getToken(), request.getNewPassword()));
     }
+
+    @Operation(summary = "Verify reset token", description = "Checks if a reset token is valid and not expired")
+    @GetMapping("/verify-reset-token")
+    public ResponseEntity<ApiResponse<Boolean>> verifyResetToken(@RequestParam String token) {
+        return ResponseEntity.ok(authService.verifyResetToken(token));
+    }
 }

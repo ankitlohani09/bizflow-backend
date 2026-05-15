@@ -59,6 +59,12 @@ public class TenantController {
         return ResponseEntity.ok(tenantService.getStats(id));
     }
 
+    @Operation(summary = "Regenerate password reset link")
+    @PostMapping("/{id}/regenerate-link")
+    public ResponseEntity<ApiResponse<String>> regenerateLink(@PathVariable Long id) {
+        return ResponseEntity.ok(tenantService.regenerateResetLink(id));
+    }
+
     @Operation(summary = "Delete tenant")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {

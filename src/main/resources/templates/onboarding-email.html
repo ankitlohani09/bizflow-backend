@@ -20,7 +20,7 @@
             <p>Hello <strong th:text="${companyName}">Business Name</strong>,</p>
             <p>We are excited to have you on board. BizFlow is designed to simplify your business operations, from inventory management to AI-powered insights.</p>
             <p>Your account has been successfully created. You can now log in and start setting up your store.</p>
-            <a href="http://localhost:5173/login" class="btn">Login to Your Dashboard</a>
+            <a th:href="${resetUrl}" class="btn">Set Up Your Password</a>
             <p>If you have any questions, feel free to reply to this email.</p>
         </div>
         <div class="footer">

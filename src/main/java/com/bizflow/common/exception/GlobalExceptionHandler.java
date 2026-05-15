@@ -61,7 +61,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleRuntimeException(RuntimeException ex) {
         log.error("Unexpected runtime exception: ", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("An unexpected error occurred. Please try again."));
+                .body(ApiResponse.error(ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred."));
     }
 
     // ✅ Unexpected Errors
@@ -69,6 +69,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
         log.error("Unexpected error: ", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("Something went wrong. Please try again."));
+                .body(ApiResponse.error(ex.getMessage() != null ? ex.getMessage() : "Something went wrong."));
     }
 }
